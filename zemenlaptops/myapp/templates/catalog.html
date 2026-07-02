@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Explore Laptops | Zemen Laptops{% endblock %}
+
+{% block content %}
+<div class="py-4">
+
+    <div class="row g-4">
+        <div class="col-lg-3">
+            <div class="p-4 rounded-4 position-sticky bg-white border shadow-sm" style="top: 90px;">
+                <h5 class="text-dark mb-4 d-flex align-items-center gap-2">
+                    <i class="bi bi-sliders text-warning"></i> Filter Catalog
+                </h5>
+                <form method="GET" action="" id="filterForm">
+                    <input type="hidden" name="page" id="filterFormPage" value="{{ request.GET.page|default:'1' }}">
+
+                    {% if request.GET.search %}
+                        <input type="hidden" name="search" value="{{ request.GET.search }}">
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Sort By</label>
+                        <select name="sort" class="form-select bg-white text-dark border shadow-sm" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
+                            <option value="date_desc" {% if request.GET.sort == 'date_desc' %}selected{% endif %}>Newest Arrivals</option>
+                            <option value="date_asc" {% if request.GET.sort == 'date_asc' %}selected{% endif %}>Oldest</option>
+                            <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                            <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Brand</label>
+                        <select name="brand" class="form-select bg-white text-dark border shadow-sm" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
+                            <option value="">All Brands</option>
+                            {% for b in brands %}
+                                <option value="{{ b }}" {% if request.GET.brand == b %}selected{% endif %}>{{ b }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">RAM Size</label>
+                        <select name="ram" class="form-select bg-white text-dark border shadow-sm" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
+                            <option value="">Any RAM</option>
+                            {% for r in rams %}
+                                <option value="{{ r }}" {% if request.GET.ram == r %}selected{% endif %}>{{ r }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Processor (CPU)</label>
+                        <select name="cpu" class="form-select bg-white text-dark border shadow-sm" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
+                            <option value="">Any CPU</option>
+                            {% for c in cpus %}
+                                <option value="{{ c }}" {% if request.GET.cpu == c %}selected{% endif %}>{{ c }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Graphics Engine (GPU)</label>
+                        <select name="gpu" class="form-select bg-white text-dark border shadow-sm" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
+                            <option value="">Any GPU</option>
+                            {% for g in gpus %}
+                                <option value="{{ g }}" {% if request.GET.gpu == g %}selected{% endif %}>{{ g }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Storage Capacity</label>
+                        <select name="storage" class="form-select bg-white text-dark border shadow-sm" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
+                            <option value="">Any Storage</option>
+                            {% for s in storage_options %}
+                                <option value="{{ s }}" {% if request.GET.storage == s %}selected{% endif %}>{{ s }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Screen Size</label>
+                        <select name="screen_size" class="form-select bg-white text-dark border shadow-sm" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
+                            <option value="">Any Size</option>
+                            {% for size in screen_sizes %}
+                                <option value="{{ size }}" {% if request.GET.screen_size == size %}selected{% endif %}>{{ size }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-bold">Operating System</label>
+                        <select name="os" class="form-select bg-white text-dark border shadow-sm" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
+                            <option value="">Any OS</option>
+                            {% for system in os_options %}
+                                <option value="{{ system }}" {% if request.GET.os == system %}selected{% endif %}>{{ system }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'laptop_catalog' %}" class="btn btn-outline-secondary btn-sm rounded-3">Clear All Filters</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="mb-4">
+                <form method="GET" action="">
+                    <input type="hidden" name="page" value="1">
+                    
+                    {% if request.GET.sort %}<input type="hidden" name="sort" value="{{ request.GET.sort }}">{% endif %}
+                    {% if request.GET.brand %}<input type="hidden" name="brand" value="{{ request.GET.brand }}">{% endif %}
+                    {% if request.GET.ram %}<input type="hidden" name="ram" value="{{ request.GET.ram }}">{% endif %}
+                    {% if request.GET.cpu %}<input type="hidden" name="cpu" value="{{ request.GET.cpu }}">{% endif %}
+                    {% if request.GET.gpu %}<input type="hidden" name="gpu" value="{{ request.GET.gpu }}">{% endif %}
+                    {% if request.GET.storage %}<input type="hidden" name="storage" value="{{ request.GET.storage }}">{% endif %}
+                    {% if request.GET.screen_size %}<input type="hidden" name="screen_size" value="{{ request.GET.screen_size }}">{% endif %}
+                    {% if request.GET.os %}<input type="hidden" name="os" value="{{ request.GET.os }}">{% endif %}
+                    
+                    <div class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden border">
+                        <span class="input-group-text bg-white border-0 text-muted"><i class="bi bi-search"></i></span>
+                        <input type="text" name="search" value="{{ request.GET.search|default:'' }}" class="form-control bg-white border-0 text-dark placeholder-secondary" placeholder="Search brands, features, models...">
+                        <button type="submit" class="btn btn-warning px-4 fw-bold">Search</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="row g-4">
+                {% for laptop in page_obj %}
+                <div class="col-md-6 col-xl-4">
+                    <div class="card h-100 bg-white border rounded-4 overflow-hidden shadow-sm">
+                        
+                        <div class="position-relative overflow-hidden bg-light border-bottom d-flex align-items-center justify-content-center" style="height: 200px;">
+                            {% if laptop.image %}
+                                <img src="{{ laptop.image.url }}" class="img-fluid w-100 h-100 object-fit-contain p-3" alt="{{ laptop.name }}">
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <i class="bi bi-laptop text-muted" style="font-size: 3.5rem;"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <span class="position-absolute top-0 start-0 m-3 badge bg-dark text-warning px-2.5 py-1.5 rounded-3 text-uppercase fw-bold small shadow-sm">
+                                {{ laptop.brand }}
+                            </span>
+                        </div>
+
+                        <div class="card-body d-flex flex-column p-4">
+                            <h5 class="card-title text-truncate fw-bold mb-3 text-dark" title="{{ laptop.name }}">{{ laptop.name }}</h5>
+                            
+                            <div class="d-flex flex-wrap gap-2 mb-4">
+                                <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1.5 small">
+                                    <i class="bi bi-cpu text-warning me-1"></i> {{ laptop.cpu }}
+                                </span>
+                                <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1.5 small">
+                                    <i class="bi bi-memory text-warning me-1"></i> {{ laptop.ram }}
+                                </span>
+                                <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1.5 small">
+                                    <i class="bi bi-hdd text-warning me-1"></i> {{ laptop.storage }}
+                                </span>
+                                {% if laptop.gpu %}
+                                <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1.5 small">
+                                    <i class="bi bi-gpu-card text-warning me-1"></i> {{ laptop.gpu }}
+                                </span>
+                                {% endif %}
+                            </div>
+
+                            <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between">
+                                <div>
+                                    <small class="text-muted d-block" style="font-size: 0.75rem; letter-spacing: 0.5px;">PRICING</small>
+                                    <span class="fs-5 fw-bold text-dark">{{ laptop.price }} <small class="fs-6 fw-normal text-muted">ETB</small></span>
+                                </div>
+                                <button data-id="{{ laptop.id }}" class="btn btn-warning btn-md rounded-3 d-flex align-items-center gap-2 px-3 fw-bold shadow-sm add-to-cart-btn">
+                                    <i class="bi bi-bag-plus-fill"></i> Add to Cart
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5">
+                    <i class="bi bi-laptop text-muted opacity-50 display-1"></i>
+                    <h4 class="text-dark mt-3">No Items Found Matching Selection</h4>
+                    <p class="text-muted">Try adjusting your filters or search terms.</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if page_obj.has_other_pages %}
+            <nav class="mt-5">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link bg-white text-warning border-light-subtle" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' and value and value != 'None' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link bg-warning text-dark border-warning fw-bold">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link bg-white text-dark border-light-subtle" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' and value and value != 'None' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link bg-white text-warning border-light-subtle" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' and value and value != 'None' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const cartButtons = document.querySelectorAll('.add-to-cart-btn');
+
+        cartButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault(); 
+                
+                const productId = String(button.getAttribute('data-id'));
+                let cart = JSON.parse(localStorage.getItem('zemen_cart')) || [];
+                
+                if (!cart.includes(productId)) {
+                    cart.push(productId);
+                }
+                
+                localStorage.setItem('zemen_cart', JSON.stringify(cart));
+                
+                if (typeof updateGlobalNavbarCartCount === 'function') {
+                    updateGlobalNavbarCartCount();
+                }
+                
+                const originalContent = button.innerHTML;
+                button.classList.replace('btn-warning', 'btn-success');
+                button.innerHTML = '<i class="bi bi-check-circle-fill"></i> Added';
+                button.style.pointerEvents = 'none'; 
+
+                setTimeout(() => {
+                    button.classList.replace('btn-success', 'btn-warning');
+                    button.innerHTML = originalContent;
+                    button.style.pointerEvents = 'auto';
+                }, 1500);
+            });
+        });
+    });
+</script>
+{% endblock %}

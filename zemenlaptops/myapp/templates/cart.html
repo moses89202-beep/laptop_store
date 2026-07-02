@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Your Cart | Zemen Laptops{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="fw-bold mb-1 text-dark">Your Shopping Bag</h2>
+        <p class="text-secondary">Review your custom-engineered workspace hardware configurations before checkout.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-xl-8">
+        <div id="cart-items-container" class="vstack gap-3">
+            <div class="text-center py-5" id="cart-loading-spinner">
+                <div class="spinner-border text-warning" role="status">
+                    <span class="visually-hidden">Loading checkout items...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl-4">
+        <div class="card bg-white border border-light-subtle rounded-3 p-4 sticky-top shadow-sm" style="top: 100px; z-index: 10;">
+            <h4 class="fw-bold text-dark mb-4">Order Summary</h4>
+            
+            <div class="vstack gap-3 mb-4">
+                <div class="d-flex justify-content-between text-secondary">
+                    <span>Subtotal (<span id="summary-item-count">0</span> items)</span>
+                    <span class="fw-semibold text-dark"><span id="summary-subtotal">0.00</span> ETB</span>
+                </div>
+                <div class="d-flex justify-content-between text-secondary">
+                    <span>Delivery Fee</span>
+                    <span class="text-success fw-bold">FREE</span>
+                </div>
+                <hr class="border-secondary-subtle my-1">
+                <div class="d-flex justify-content-between align-items-baseline">
+                    <span class="fw-bold fs-5 text-dark">Estimated Total</span>
+                    <span class="fw-bold fs-4 text-warning"><span id="summary-total">0.00</span> <small class="fs-6 fw-normal text-secondary">ETB</small></span>
+                </div>
+            </div>
+
+            <button id="checkout-btn" class="btn btn-warning w-100 py-3 rounded-3 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2" disabled>
+                <i class="bi bi-credit-card-2-front-fill"></i> Proceed to Secure Checkout
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const itemsContainer = document.getElementById('cart-items-container');
+        const loadingSpinner = document.getElementById('cart-loading-spinner');
+        
+        const summaryCount = document.getElementById('summary-item-count');
+        const summarySubtotal = document.getElementById('summary-subtotal');
+        const summaryTotal = document.getElementById('summary-total');
+        const checkoutBtn = document.getElementById('checkout-btn');
+
+        let rawCart = JSON.parse(localStorage.getItem('zemen_cart')) || [];
+        let cartIds = rawCart.map(id => String(id).trim()).filter(id => id.length > 0);
+
+        if (cartIds.length === 0) {
+            renderEmptyState();
+            return;
+        }
+
+        fetch('/api/cart-items/?ids=' + cartIds.join(','))
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP Error Status: ${res.status}`);
+                return res.json();
+            })
+            .then(data => {
+                if (loadingSpinner) loadingSpinner.remove();
+                if (!data.items || data.items.length === 0) {
+                    renderEmptyState();
+                    return;
+                }
+                renderCartItems(data.items);
+            })
+            .catch(err => {
+                console.error("Cart retrieval breakdown:", err);
+                if (loadingSpinner) loadingSpinner.remove();
+                
+                itemsContainer.innerHTML = `
+                    <div class="alert alert-danger border-danger-subtle d-flex gap-3 rounded-3 p-4" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill fs-4 text-danger"></i>
+                        <div>
+                            <h5 class="fw-bold mb-1 text-danger">Failed to connect to database</h5>
+                            <p class="small mb-2 text-secondary">The runtime engine failed to retrieve item models.</p>
+                            <code class="badge bg-danger bg-opacity-10 text-danger p-2">${err.message}</code>
+                        </div>
+                    </div>`;
+            });
+
+        function renderCartItems(items) {
+            itemsContainer.innerHTML = ''; 
+            let totalSum = 0;
+            items.forEach(item => {
+                const itemPrice = parseFloat(item.price) || 0;
+                totalSum += itemPrice;
+                const fallbackImg = `
+                    <div class="bg-light border rounded-3 d-flex align-items-center justify-content-center w-100 h-100">
+                        <i class="bi bi-laptop fs-2 text-secondary"></i>
+                    </div>`;
+                
+                const productImg = item.image_url ? `
+                    <img src="${item.image_url}" alt="${item.name}" class="img-fluid rounded-3 object-fit-contain w-100 h-100 border p-2 bg-white">` 
+                    : fallbackImg;
+
+                const layoutRow = document.createElement('div');
+                layoutRow.className = 'card bg-white border border-light-subtle rounded-3 p-3 p-md-4 position-relative shadow-sm';
+                layoutRow.id = `cart-row-${item.id}`;
+                layoutRow.innerHTML = `
+                    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center gap-3">
+                        
+                        <!-- Fully Responsive Image Container -->
+                        <div class="flex-shrink-0 mx-auto mx-md-0 w-100" style="max-width: 150px; height: 110px;">
+                            ${productImg}
+                        </div>
+                        
+                        <div class="flex-grow-1 text-center text-md-start w-100">
+                            <span class="text-warning text-uppercase small fw-bold d-block mb-1" style="font-size:0.75rem; letter-spacing: 0.5px;">${item.brand}</span>
+                            <h5 class="fw-bold text-dark mb-2 text-truncate" style="max-width:350px;">${item.name}</h5>
+                            <div class="d-flex flex-wrap justify-content-center justify-content-md-start gap-2">
+                                <span class="badge bg-light text-secondary border rounded-2 fw-normal"><i class="bi bi-cpu text-warning me-1"></i> ${item.processor || 'Core i7'}</span>
+                                <span class="badge bg-light text-secondary border rounded-2 fw-normal"><i class="bi bi-memory text-warning me-1"></i> ${item.ram || '16GB'}</span>
+                                <span class="badge bg-light text-secondary border rounded-2 fw-normal"><i class="bi bi-hdd text-warning me-1"></i> ${item.storage || '512GB SSD'}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex flex-row flex-md-column justify-content-between align-items-center align-items-md-end w-100 w-md-auto gap-2 border-top border-light border-md-0 pt-2 pt-md-0 mt-2 mt-md-0">
+                            <div class="text-md-end">
+                                <span class="fw-bold fs-5 text-dark">${itemPrice.toLocaleString()} <small class="fs-6 fw-normal text-secondary">ETB</small></span>
+                            </div>
+                            <button class="btn btn-sm btn-outline-danger border-0 remove-item-btn p-1 mt-md-2" data-id="${item.id}" title="Remove laptop configuration">
+                                <i class="bi bi-trash3-fill me-1"></i> Remove
+                            </button>
+                        </div>
+                    </div>
+                `;
+                itemsContainer.appendChild(layoutRow);
+            });
+
+            summaryCount.textContent = items.length;
+            summarySubtotal.textContent = totalSum.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            summaryTotal.textContent = totalSum.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            checkoutBtn.disabled = false;
+
+            setupRemovalTriggers(items);
+        }
+
+        function setupRemovalTriggers(itemsList) {
+            let reactiveItems = [...itemsList];
+            
+            document.querySelectorAll('.remove-item-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const idToRemove = String(btn.getAttribute('data-id')).trim();
+                    
+                    cartIds = cartIds.filter(id => String(id).trim() !== idToRemove);
+                    localStorage.setItem('zemen_cart', JSON.stringify(cartIds));
+                    
+                    if (typeof updateGlobalNavbarCartCount === 'function') {
+                        updateGlobalNavbarCartCount();
+                    }
+
+                    const targetRow = document.getElementById(`cart-row-${idToRemove}`);
+                    if (targetRow) {
+                        targetRow.style.transition = 'all 0.25s ease';
+                        targetRow.style.opacity = '0';
+                        targetRow.style.transform = 'scale(0.96)';
+                        setTimeout(() => {
+                            targetRow.remove();
+                            reactiveItems = reactiveItems.filter(item => String(item.id).trim() !== idToRemove);
+                            if (reactiveItems.length === 0) {
+                                renderEmptyState();
+                            } else {
+                                renderCartItems(reactiveItems);
+                            }
+                        }, 250);
+                    }
+                });
+            });
+        }
+
+        function renderEmptyState() {
+            if (loadingSpinner) loadingSpinner.remove();
+            itemsContainer.innerHTML = `
+                <div class="text-center py-5 card bg-white border border-light-subtle rounded-3 shadow-sm">
+                    <i class="bi bi-cart-x text-secondary opacity-50 display-1 mb-3"></i>
+                    <h4 class="fw-bold text-dark">Your cart is empty</h4>
+                    <p class="text-secondary mb-4">Looks like you haven't added any gear to your configurations yet.</p>
+                    <a href="/" class="btn btn-warning px-4 fw-bold shadow-sm mx-auto">
+                        <i class="bi bi-arrow-left me-2"></i> Browse Laptops Catalog
+                    </a>
+                </div>`;
+            summaryCount.textContent = '0';
+            summarySubtotal.textContent = '0.00';
+            summaryTotal.textContent = '0.00';
+            checkoutBtn.disabled = true;
+        }
+    });
+</script>
+{% endblock %}
