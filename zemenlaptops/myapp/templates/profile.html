@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#f8fafc] text-slate-800 min-height-screenantialiased" x-data="{ deleteModalOpen: false }">
+
+<div class="container mx-auto max-w-6xl px-4 py-8 md:py-12">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 md:mb-12">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">Account Settings</h1>
+            <p class="text-sm text-slate-500 mt-1">Manage your identity, shipping routes, and security credentials</p>
+        </div>
+        <a href="{% url 'home' %}" class="inline-flex items-center justify-center px-4 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm">
+            Back to Store
+        </a>
+    </div>
+
+    {% if messages %}
+        <div class="space-y-3 mb-6">
+            {% for message in messages %}
+                <div x-data="{ show: true }" x-show="show" x-transition class="flex items-center justify-between p-4 text-sm font-medium rounded-xl border {% if message.tags == 'success' %}bg-emerald-50 text-emerald-800 border-emerald-200{% else %}bg-amber-50 text-amber-800 border-amber-200{% endif %} shadow-sm">
+                    <div class="flex items-center gap-2">
+                        {% if message.tags == 'success' %}
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        {% endif %}
+                        <span>{{ message }}</span>
+                    </div>
+                    <button @click="show = false" class="text-slate-400 hover:text-slate-600 transition">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div class="lg:col-span-4 bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm">
+            <div class="flex flex-row lg:flex-col items-center lg:text-center gap-4 lg:gap-3">
+                <div class="w-14 h-14 lg:w-20 lg:h-20 rounded-2xl font-bold text-lg lg:text-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center tracking-wider shadow-inner shrink-0">
+                    {% if customer.full_name %}
+                        {{ customer.full_name|slice:":1"|upper }}
+                    {% else %}
+                        {{ request.user.username|slice:":1"|upper }}
+                    {% endif %}
+                </div>
+                <div class="overflow-hidden">
+                    <h4 class="font-bold text-slate-900 text-base lg:text-lg truncate">{{ customer.full_name|default:request.user.username }}</h4>
+                    <p class="text-xs text-slate-400 truncate mt-0.5">@{{ request.user.username }}</p>
+                    <p class="text-xs text-slate-500 truncate mt-1 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-md inline-block">{{ request.user.email }}</p>
+                </div>
+            </div>
+            <div class="hidden lg:block my-5 border-t border-slate-100"></div>
+            <a href="{% url 'logout' %}" class="w-100 block text-center mt-4 lg:mt-0 px-4 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50 border border-transparent rounded-xl transition-all">
+                Log Out
+            </a>
+        </div>
+
+        <div class="lg:col-span-8 bg-white border border-slate-200/80 rounded-2xl p-6 md:p-8 shadow-sm">
+            <h3 class="font-bold text-slate-900 text-lg mb-6 flex items-center gap-2 border-b border-slate-100 pb-4">
+                Personal Information
+            </h3>
+            
+            <form method="POST" novalidate class="space-y-5">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium rounded-xl">
+                        {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {% for field in form %}
+                        <div class="{% if field.name == 'address' %}md:col-span-2{% else %}col-span-1{% endif %}">
+                            <label for="{{ field.id_for_label }}" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                                {{ field.label }}
+                                {% if field.field.required %}
+                                    <span class="text-rose-500 font-bold ml-0.5">*</span>
+                                {% endif %}
+                            </label>
+
+                            {% if field.name == 'address' %}
+                                <textarea name="{{ field.name }}" id="{{ field.id_for_label }}"
+                                          class="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all ring-offset-0 {% if field.errors %}border-rose-400 ring-4 ring-rose-500/10{% endif %}" 
+                                          rows="3" placeholder="Enter your delivery address">{% if field.value %}{{ field.value }}{% endif %}</textarea>
+                            {% else %}
+                                <input type="{% if field.name == 'email' %}email{% else %}text{% endif %}" 
+                                       name="{{ field.name }}" id="{{ field.id_for_label }}" 
+                                       class="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all ring-offset-0 {% if field.errors %}border-rose-400 ring-4 ring-rose-500/10{% endif %}" 
+                                       value="{{ field.value|default_if_none:'' }}"
+                                       placeholder="Enter your {{ field.label|lower }}">
+                            {% endif %}
+
+                            {% if field.errors %}
+                                <p class="text-xs font-medium text-rose-600 mt-1.5 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                    <span>{% for error in field.errors %}{{ error }}{% endfor %}</span>
+                                </p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-5 border-t border-slate-100">
+                    <button type="button" @click="deleteModalOpen = true" class="text-xs font-semibold text-rose-500 hover:text-rose-700 transition order-2 sm:order-1">
+                        Delete My Account
+                    </button>
+                    <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-slate-900 text-white font-semibold text-sm rounded-xl hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-900/10 active:scale-[0.98] transition-all order-1 sm:order-2 shadow-sm shadow-slate-900/10">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-x-hidden overflow-y-auto" x-show="deleteModalOpen" x-cloak>
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" 
+         x-show="deleteModalOpen" 
+         x-transition:enter="ease-out duration-300" 
+         x-transition:enter-start="opacity-0" 
+         x-transition:enter-end="opacity-100" 
+         x-transition:leave="ease-in duration-200" 
+         x-transition:leave-start="opacity-100" 
+         x-transition:leave-end="opacity-0" 
+         @click="deleteModalOpen = false"></div>
+
+    <div class="relative w-full max-w-md bg-white border border-slate-100 shadow-2xl rounded-2xl p-6 transition-all transform" 
+         x-show="deleteModalOpen" 
+         x-transition:enter="ease-out duration-300" 
+         x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+         x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" 
+         x-transition:leave="ease-in duration-200" 
+         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
+         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
+        
+        <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            </div>
+            <div>
+                <h3 class="text-base font-bold text-slate-900">Delete Account Permanently?</h3>
+                <p class="text-sm text-slate-500 mt-2 leading-relaxed">
+                    This action is final and cannot be reversed. All your saved profile records, shipping information, and credentials will be completely erased.
+                </p>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-slate-50">
+            <button type="button" @click="deleteModalOpen = false" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 rounded-xl transition">
+                Cancel
+            </button>
+            <form action="{% url 'delete_account' %}" method="POST" class="m-0">
+                {% csrf_token %}
+                <button type="submit" class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 rounded-xl transition shadow-sm shadow-rose-600/10">
+                    Confirm Deletion
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.conf import settings
 
 class Laptop(models.Model):
     name = models.CharField(max_length=255)
@@ -19,3 +19,16 @@ class Laptop(models.Model):
 
     def __str__(self):
         return f"{self.brand} {self.name}"
+    
+
+class Customer(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='customer_profile')
+    
+    # full_name can accept spaces and can be identical to other users
+    full_name = models.CharField(max_length=255, blank=True, null=True) 
+    
+    # email must be unique, null=True prevents migration errors for existing data
+    email = models.EmailField(unique=True, blank=True, null=True) 
+
+    address = models.TextField(blank=True, null=True)
+    phone_number = models.CharField(max_length=15, blank=True, null=True)

@@ -1,6 +1,5 @@
 from django.contrib import admin
-from .models import Laptop
-
+from .models import *
 
 @admin.register(Laptop)
 class LaptopAdmin(admin.ModelAdmin):
@@ -26,3 +25,5 @@ class LaptopAdmin(admin.ModelAdmin):
             'fields': ('created_at', 'updated_at')
         }),
     )
+
+admin.site.register(Customer)

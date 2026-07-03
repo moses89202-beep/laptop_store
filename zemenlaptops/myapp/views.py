@@ -1,8 +1,12 @@
-from django.shortcuts import render
-from .models import Laptop
+from .models import *
 from django.http import JsonResponse
 from django.db.models import Q
 from django.core.paginator import Paginator
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
+from .forms import *
 
 
 def home(request):
@@ -106,3 +110,70 @@ def cart_items_api(request):
         
     except Exception as e:
         return JsonResponse({'error': str(e), 'items': []}, status=400)
+    
+
+def signup_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+        
+    if request.method == 'POST':
+        form = CustomerSignupForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, f"Welcome, {user.username}! Your account was created successfully.")
+            return redirect('home')
+    else:
+        form = CustomerSignupForm()
+    return render(request, 'signup.html', {'form': form})
+
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+
+    if request.method == 'POST':
+        form = CustomerLoginForm(data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            return redirect('home')
+    else:
+        form = CustomerLoginForm()
+    return render(request, 'login.html', {'form': form})
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('home')
+
+
+@login_required
+def profile_view(request):
+    customer_profile = get_object_or_404(Customer, user=request.user)
+
+    if request.method == 'POST':
+        form = CustomerProfileForm(request.POST, instance=customer_profile, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Your profile has been updated successfully!")
+            return redirect('profile')
+    else:
+        form = CustomerProfileForm(instance=customer_profile, user=request.user)
+
+    return render(request, 'profile.html', {
+        'form': form,
+        'customer': customer_profile
+    })
+
+
+@login_required
+def delete_account_view(request):
+    if request.method == 'POST':
+        user = request.user
+        logout(request)
+        user.delete()
+        messages.success(request, "Your account has been deleted successfully.")
+        return redirect('signup')
+        
+    return redirect('profile')

@@ -4,24 +4,60 @@
 {% block title %}Explore Laptops | Zemen Laptops{% endblock %}
 
 {% block content %}
-<div class="py-4">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 pb-12 text-slate-900 antialiased">
 
-    <div class="row g-4">
-        <div class="col-lg-3">
-            <div class="p-4 rounded-4 position-sticky bg-white border shadow-sm" style="top: 90px;">
-                <h5 class="text-dark mb-4 d-flex align-items-center gap-2">
-                    <i class="bi bi-sliders text-warning"></i> Filter Catalog
-                </h5>
-                <form method="GET" action="" id="filterForm">
+    <div class="mt-2 mb-8 max-w-3xl mx-auto w-full">
+        <form method="GET" action="" class="relative">
+            <input type="hidden" name="page" value="1">
+            
+            {% if request.GET.sort %}<input type="hidden" name="sort" value="{{ request.GET.sort }}">{% endif %}
+            {% if request.GET.brand %}<input type="hidden" name="brand" value="{{ request.GET.brand }}">{% endif %}
+            {% if request.GET.ram %}<input type="hidden" name="ram" value="{{ request.GET.ram }}">{% endif %}
+            {% if request.GET.cpu %}<input type="hidden" name="cpu" value="{{ request.GET.cpu }}">{% endif %}
+            {% if request.GET.gpu %}<input type="hidden" name="gpu" value="{{ request.GET.gpu }}">{% endif %}
+            {% if request.GET.storage %}<input type="hidden" name="storage" value="{{ request.GET.storage }}">{% endif %}
+            {% if request.GET.screen_size %}<input type="hidden" name="screen_size" value="{{ request.GET.screen_size }}">{% endif %}
+            {% if request.GET.os %}<input type="hidden" name="os" value="{{ request.GET.os }}">{% endif %}
+            
+            <div class="relative flex items-center bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow transition-all duration-300 group focus-within:ring-2 focus-within:ring-slate-950 focus-within:border-transparent">
+                <span class="absolute left-5 text-slate-400 group-focus-within:text-slate-950 transition-colors duration-200">
+                    <i class="bi bi-search text-base"></i>
+                </span>
+                
+                <input type="text" 
+                       name="search" 
+                       value="{{ request.GET.search|default:'' }}" 
+                       class="w-full bg-transparent border-0 py-4 pl-14 pr-32 text-slate-900 placeholder-slate-400 font-medium tracking-wide outline-none text-sm" 
+                       placeholder="Search brands, technical features, models...">
+                
+                <button type="submit" class="absolute right-2 bg-slate-950 text-white font-bold rounded-xl text-[11px] uppercase tracking-widest px-5 py-2.5 hover:bg-slate-800 active:scale-95 transition-all duration-200">
+                    Search
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+        
+        <aside class="lg:col-span-1 lg:sticky lg:top-24">
+            <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
+                <div class="flex items-center gap-2.5 mb-6 text-xs uppercase tracking-wider font-bold text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-950" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                    </svg>
+                    Filter Catalog
+                </div>
+                
+                <form method="GET" action="" id="filterForm" class="space-y-5">
                     <input type="hidden" name="page" id="filterFormPage" value="{{ request.GET.page|default:'1' }}">
 
                     {% if request.GET.search %}
                         <input type="hidden" name="search" value="{{ request.GET.search }}">
                     {% endif %}
 
-                    <div class="mb-3">
-                        <label class="form-label text-muted small fw-bold">Sort By</label>
-                        <select name="sort" class="form-select bg-white text-dark border shadow-sm" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Sort By</label>
+                        <select name="sort" class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 focus:bg-white transition-all outline-none" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
                             <option value="date_desc" {% if request.GET.sort == 'date_desc' %}selected{% endif %}>Newest Arrivals</option>
                             <option value="date_asc" {% if request.GET.sort == 'date_asc' %}selected{% endif %}>Oldest</option>
                             <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
@@ -29,9 +65,9 @@
                         </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label text-muted small fw-bold">Brand</label>
-                        <select name="brand" class="form-select bg-white text-dark border shadow-sm" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Brand</label>
+                        <select name="brand" class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 focus:bg-white transition-all outline-none" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
                             <option value="">All Brands</option>
                             {% for b in brands %}
                                 <option value="{{ b }}" {% if request.GET.brand == b %}selected{% endif %}>{{ b }}</option>
@@ -39,9 +75,9 @@
                         </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label text-muted small fw-bold">RAM Size</label>
-                        <select name="ram" class="form-select bg-white text-dark border shadow-sm" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">RAM Size</label>
+                        <select name="ram" class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 focus:bg-white transition-all outline-none" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
                             <option value="">Any RAM</option>
                             {% for r in rams %}
                                 <option value="{{ r }}" {% if request.GET.ram == r %}selected{% endif %}>{{ r }}</option>
@@ -49,9 +85,9 @@
                         </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label text-muted small fw-bold">Processor (CPU)</label>
-                        <select name="cpu" class="form-select bg-white text-dark border shadow-sm" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Processor (CPU)</label>
+                        <select name="cpu" class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 focus:bg-white transition-all outline-none" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
                             <option value="">Any CPU</option>
                             {% for c in cpus %}
                                 <option value="{{ c }}" {% if request.GET.cpu == c %}selected{% endif %}>{{ c }}</option>
@@ -59,9 +95,9 @@
                         </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label text-muted small fw-bold">Graphics Engine (GPU)</label>
-                        <select name="gpu" class="form-select bg-white text-dark border shadow-sm" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Graphics Engine (GPU)</label>
+                        <select name="gpu" class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 focus:bg-white transition-all outline-none" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
                             <option value="">Any GPU</option>
                             {% for g in gpus %}
                                 <option value="{{ g }}" {% if request.GET.gpu == g %}selected{% endif %}>{{ g }}</option>
@@ -69,9 +105,9 @@
                         </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label text-muted small fw-bold">Storage Capacity</label>
-                        <select name="storage" class="form-select bg-white text-dark border shadow-sm" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Storage Capacity</label>
+                        <select name="storage" class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 focus:bg-white transition-all outline-none" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
                             <option value="">Any Storage</option>
                             {% for s in storage_options %}
                                 <option value="{{ s }}" {% if request.GET.storage == s %}selected{% endif %}>{{ s }}</option>
@@ -79,9 +115,9 @@
                         </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label text-muted small fw-bold">Screen Size</label>
-                        <select name="screen_size" class="form-select bg-white text-dark border shadow-sm" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Screen Size</label>
+                        <select name="screen_size" class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 focus:bg-white transition-all outline-none" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
                             <option value="">Any Size</option>
                             {% for size in screen_sizes %}
                                 <option value="{{ size }}" {% if request.GET.screen_size == size %}selected{% endif %}>{{ size }}</option>
@@ -89,9 +125,9 @@
                         </select>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="form-label text-muted small fw-bold">Operating System</label>
-                        <select name="os" class="form-select bg-white text-dark border shadow-sm" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
+                    <div class="pb-2">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Operating System</label>
+                        <select name="os" class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 focus:bg-white transition-all outline-none" onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();">
                             <option value="">Any OS</option>
                             {% for system in os_options %}
                                 <option value="{{ system }}" {% if request.GET.os == system %}selected{% endif %}>{{ system }}</option>
@@ -99,127 +135,110 @@
                         </select>
                     </div>
 
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'laptop_catalog' %}" class="btn btn-outline-secondary btn-sm rounded-3">Clear All Filters</a>
-                    </div>
+                    <a href="{% url 'laptop_catalog' %}" class="block text-center w-full border border-slate-200 text-slate-700 hover:bg-slate-50 transition font-semibold py-2.5 rounded-xl text-xs tracking-wide">
+                        Clear All Filters
+                    </a>
                 </form>
             </div>
-        </div>
+        </aside>
 
-        <div class="col-lg-9">
-            <div class="mb-4">
-                <form method="GET" action="">
-                    <input type="hidden" name="page" value="1">
-                    
-                    {% if request.GET.sort %}<input type="hidden" name="sort" value="{{ request.GET.sort }}">{% endif %}
-                    {% if request.GET.brand %}<input type="hidden" name="brand" value="{{ request.GET.brand }}">{% endif %}
-                    {% if request.GET.ram %}<input type="hidden" name="ram" value="{{ request.GET.ram }}">{% endif %}
-                    {% if request.GET.cpu %}<input type="hidden" name="cpu" value="{{ request.GET.cpu }}">{% endif %}
-                    {% if request.GET.gpu %}<input type="hidden" name="gpu" value="{{ request.GET.gpu }}">{% endif %}
-                    {% if request.GET.storage %}<input type="hidden" name="storage" value="{{ request.GET.storage }}">{% endif %}
-                    {% if request.GET.screen_size %}<input type="hidden" name="screen_size" value="{{ request.GET.screen_size }}">{% endif %}
-                    {% if request.GET.os %}<input type="hidden" name="os" value="{{ request.GET.os }}">{% endif %}
-                    
-                    <div class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden border">
-                        <span class="input-group-text bg-white border-0 text-muted"><i class="bi bi-search"></i></span>
-                        <input type="text" name="search" value="{{ request.GET.search|default:'' }}" class="form-control bg-white border-0 text-dark placeholder-secondary" placeholder="Search brands, features, models...">
-                        <button type="submit" class="btn btn-warning px-4 fw-bold">Search</button>
-                    </div>
-                </form>
-            </div>
-
-            <div class="row g-4">
+        <main class="lg:col-span-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {% for laptop in page_obj %}
-                <div class="col-md-6 col-xl-4">
-                    <div class="card h-100 bg-white border rounded-4 overflow-hidden shadow-sm">
+                <div class="group bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col">
+                    
+                    <div class="relative bg-slate-50/80 h-52 flex items-center justify-content-center p-6 border-b border-slate-100/60 overflow-hidden">
+                        {% if laptop.image %}
+                            <img src="{{ laptop.image.url }}" class="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-105" alt="{{ laptop.name }}">
+                        {% else %}
+                            <div class="text-slate-300">
+                                <i class="bi bi-laptop" style="font-size: 3.5rem;"></i>
+                            </div>
+                        {% endif %}
                         
-                        <div class="position-relative overflow-hidden bg-light border-bottom d-flex align-items-center justify-content-center" style="height: 200px;">
-                            {% if laptop.image %}
-                                <img src="{{ laptop.image.url }}" class="img-fluid w-100 h-100 object-fit-contain p-3" alt="{{ laptop.name }}">
-                            {% else %}
-                                <div class="text-center py-5">
-                                    <i class="bi bi-laptop text-muted" style="font-size: 3.5rem;"></i>
-                                </div>
-                            {% endif %}
-                            
-                            <span class="position-absolute top-0 start-0 m-3 badge bg-dark text-warning px-2.5 py-1.5 rounded-3 text-uppercase fw-bold small shadow-sm">
-                                {{ laptop.brand }}
+                        <span class="absolute top-4 left-4 bg-white border border-slate-100 text-slate-900 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-lg shadow-sm">
+                            {{ laptop.brand }}
+                        </span>
+                    </div>
+
+                    <div class="p-5 flex flex-col flex-grow">
+                        <h3 class="text-sm font-bold text-slate-900 truncate mb-3" title="{{ laptop.name }}">
+                            {{ laptop.name }}
+                        </h3>
+                        
+                        <div class="flex flex-wrap gap-1.5 mb-6">
+                            <span class="inline-flex items-center text-[11px] font-medium bg-slate-50 text-slate-600 px-2.5 py-1.5 rounded-lg">
+                                <i class="bi bi-cpu text-slate-400 mr-1.5"></i> {{ laptop.cpu }}
                             </span>
+                            <span class="inline-flex items-center text-[11px] font-medium bg-slate-50 text-slate-600 px-2.5 py-1.5 rounded-lg">
+                                <i class="bi bi-memory text-slate-400 mr-1.5"></i> {{ laptop.ram }}
+                            </span>
+                            <span class="inline-flex items-center text-[11px] font-medium bg-slate-50 text-slate-600 px-2.5 py-1.5 rounded-lg">
+                                <i class="bi bi-database text-slate-400 mr-1.5"></i> {{ laptop.storage }}
+                            </span>
+                            {% if laptop.gpu %}
+                            <span class="inline-flex items-center text-[11px] font-medium bg-slate-50 text-slate-600 px-2.5 py-1.5 rounded-lg">
+                                <i class="bi bi-gpu-card text-slate-400 mr-1.5"></i> {{ laptop.gpu }}
+                            </span>
+                            {% endif %}
                         </div>
 
-                        <div class="card-body d-flex flex-column p-4">
-                            <h5 class="card-title text-truncate fw-bold mb-3 text-dark" title="{{ laptop.name }}">{{ laptop.name }}</h5>
-                            
-                            <div class="d-flex flex-wrap gap-2 mb-4">
-                                <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1.5 small">
-                                    <i class="bi bi-cpu text-warning me-1"></i> {{ laptop.cpu }}
+                        <div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
+                            <div>
+                                <span class="block text-[9px] font-bold tracking-widest text-slate-400 uppercase">Pricing</span>
+                                <span class="text-base font-extrabold text-slate-900 tracking-tight">
+                                    {{ laptop.price }} <span class="text-xs font-normal text-slate-400 ml-0.5">ETB</span>
                                 </span>
-                                <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1.5 small">
-                                    <i class="bi bi-memory text-warning me-1"></i> {{ laptop.ram }}
-                                </span>
-                                <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1.5 small">
-                                    <i class="bi bi-hdd text-warning me-1"></i> {{ laptop.storage }}
-                                </span>
-                                {% if laptop.gpu %}
-                                <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1.5 small">
-                                    <i class="bi bi-gpu-card text-warning me-1"></i> {{ laptop.gpu }}
-                                </span>
-                                {% endif %}
                             </div>
-
-                            <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between">
-                                <div>
-                                    <small class="text-muted d-block" style="font-size: 0.75rem; letter-spacing: 0.5px;">PRICING</small>
-                                    <span class="fs-5 fw-bold text-dark">{{ laptop.price }} <small class="fs-6 fw-normal text-muted">ETB</small></span>
-                                </div>
-                                <button data-id="{{ laptop.id }}" class="btn btn-warning btn-md rounded-3 d-flex align-items-center gap-2 px-3 fw-bold shadow-sm add-to-cart-btn">
-                                    <i class="bi bi-bag-plus-fill"></i> Add to Cart
-                                </button>
-                            </div>
+                            <button data-id="{{ laptop.id }}" class="add-to-cart-btn inline-flex items-center gap-1.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm hover:shadow transition-all duration-200 active:scale-95">
+                                <i class="bi bi-cart-plus text-sm"></i> Add to Cart
+                            </button>
                         </div>
                     </div>
                 </div>
                 {% empty %}
-                <div class="col-12 text-center py-5">
-                    <i class="bi bi-laptop text-muted opacity-50 display-1"></i>
-                    <h4 class="text-dark mt-3">No Items Found Matching Selection</h4>
-                    <p class="text-muted">Try adjusting your filters or search terms.</p>
+                <div class="col-span-full text-center py-16 bg-white border border-slate-100 rounded-2xl shadow-sm">
+                    <i class="bi bi-inboxes text-slate-200 text-6xl block mb-4"></i>
+                    <h4 class="text-base font-bold text-slate-800">No items match your choice</h4>
+                    <p class="text-slate-400 text-xs mt-1">Try tweaking your search term filters or refreshing catalog layout.</p>
                 </div>
                 {% endfor %}
             </div>
 
             {% if page_obj.has_other_pages %}
-            <nav class="mt-5">
-                <ul class="pagination justify-content-center">
+            <nav class="mt-12 flex justify-center">
+                <ul class="inline-flex items-center gap-1.5 bg-slate-100/60 p-1.5 rounded-xl">
                     {% if page_obj.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link bg-white text-warning border-light-subtle" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' and value and value != 'None' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
+                        <li>
+                            <a class="flex items-center justify-center w-9 h-9 text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 rounded-lg transition shadow-sm" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' and value and value != 'None' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Previous">
+                                <span aria-hidden="true">&lsaquo;</span>
                             </a>
                         </li>
                     {% endif %}
 
                     {% for num in page_obj.paginator.page_range %}
                         {% if page_obj.number == num %}
-                            <li class="page-item active"><span class="page-link bg-warning text-dark border-warning fw-bold">{{ num }}</span></li>
+                            <li>
+                                <span class="flex items-center justify-center w-9 h-9 text-sm font-bold text-white bg-slate-950 rounded-lg shadow-sm">{{ num }}</span>
+                            </li>
                         {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                            <li class="page-item">
-                                <a class="page-link bg-white text-dark border-light-subtle" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' and value and value != 'None' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                            <li>
+                                <a class="flex items-center justify-center w-9 h-9 text-sm font-medium text-slate-600 hover:bg-white hover:text-slate-900 rounded-lg transition" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' and value and value != 'None' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
                             </li>
                         {% endif %}
                     {% endfor %}
 
                     {% if page_obj.has_next %}
-                        <li class="page-item">
-                            <a class="page-link bg-white text-warning border-light-subtle" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' and value and value != 'None' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
+                        <li>
+                            <a class="flex items-center justify-center w-9 h-9 text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 rounded-lg transition shadow-sm" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' and value and value != 'None' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Next">
+                                <span aria-hidden="true">&rsaquo;</span>
                             </a>
                         </li>
                     {% endif %}
                 </ul>
             </nav>
             {% endif %}
-        </div>
+        </main>
     </div>
 
 </div>
@@ -246,12 +265,15 @@
                 }
                 
                 const originalContent = button.innerHTML;
-                button.classList.replace('btn-warning', 'btn-success');
+                
+                button.classList.remove('bg-amber-400', 'hover:bg-amber-500', 'text-slate-950');
+                button.classList.add('bg-emerald-500', 'text-white');
                 button.innerHTML = '<i class="bi bi-check-circle-fill"></i> Added';
                 button.style.pointerEvents = 'none'; 
 
                 setTimeout(() => {
-                    button.classList.replace('btn-success', 'btn-warning');
+                    button.classList.remove('bg-emerald-500', 'text-white');
+                    button.classList.add('bg-amber-400', 'hover:bg-amber-500', 'text-slate-950');
                     button.innerHTML = originalContent;
                     button.style.pointerEvents = 'auto';
                 }, 1500);
