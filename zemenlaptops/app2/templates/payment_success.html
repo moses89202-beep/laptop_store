@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="h-full flex items-center justify-center p-4 sm:p-6 antialiased text-slate-800">
+
+    <div class="max-w-xl w-full bg-white rounded-2xl shadow-xl border border-slate-100 p-6 sm:p-8 text-center transition-all">
+        
+        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-emerald-100 mb-6">
+            <svg class="h-10 w-10 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
+        </div>
+
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
+            Payment Successful!
+        </h1>
+        <p class="text-sm sm:text-base text-slate-500 max-w-md mx-auto">
+            Thank you for shopping with <span class="font-semibold text-slate-900">Zemen Laptops</span>. Your payment has been verified successfully.
+        </p>
+        
+        <div class="mt-8 bg-slate-50 rounded-xl p-5 border border-slate-100 text-left space-y-3.5 divide-y divide-slate-200/60">
+            <div class="flex justify-between items-center text-sm">
+                <span class="text-slate-500 font-medium">Order ID</span>
+                <span class="font-mono font-semibold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200 text-xs">{{ order.id }}</span>
+            </div>
+            
+            <div class="flex justify-between items-center text-sm pt-3.5">
+                <span class="text-slate-500 font-medium">Transaction Ref</span>
+                <span class="font-mono text-slate-700 text-xs truncate max-w-[180px] sm:max-w-none">{{ order.tx_ref }}</span>
+            </div>
+            
+            <div class="flex justify-between items-center text-sm pt-3.5">
+                <span class="text-slate-500 font-medium">Amount Paid</span>
+                <span class="text-base font-bold text-emerald-600">{{ order.total_amount }} ETB</span>
+            </div>
+            
+            <div class="flex justify-between items-center text-sm pt-3.5">
+                <span class="text-slate-500 font-medium">Delivery Method</span>
+                <span class="text-slate-800 font-medium">{{ order.get_delivery_method_display }}</span>
+            </div>
+            
+            <div class="flex justify-between items-center text-sm pt-3.5">
+                <span class="text-slate-500 font-medium">Logistics Status</span>
+                {% if order.delivery_method == 'delivery' %}
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                        🚚 {{ order.get_delivery_status_display }}
+                    </span>
+                {% else %}
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                        🏬 Ready for Store Collection
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mt-8 flex flex-col sm:flex-row-reverse gap-3">
+            {% if order.receipt %}
+                <a href="{{ order.receipt.url }}" download class="w-full inline-flex justify-center items-center gap-2 px-5 py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-sm transition-colors shadow-sm shadow-slate-900/10">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    Download Receipt
+                </a>
+            {% endif %}
+            
+            <a href="/" class="w-full inline-flex justify-center items-center px-5 py-3 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-sm border border-slate-200 transition-colors">
+                Go Back Home
+            </a>
+        </div>
+        
+    </div>
+
+</body>
+</html>

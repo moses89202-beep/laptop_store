@@ -1,140 +1,223 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Shop Laptops | Zemen Laptops{% endblock %}
+{% block title %}Zemen Laptops{% endblock %}
 
 {% block content %}
 <div class="space-y-8">
-    
-    <!-- Hero Banner Component Banner Area -->
-    <div class="relative overflow-hidden bg-white border border-slate-200/80 rounded-2xl p-6 md:p-10 shadow-sm">
-        <!-- Floating Cyber Decorative Watermark Graphic -->
-        <div class="absolute right-0 top-50 -translate-y-1/2 opacity-[0.03] pointer-events-none hidden md:block pr-12">
-            <svg class="w-48 h-48 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 5h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2z" />
-            </svg>
+
+    <div class="relative overflow-hidden bg-slate-950 rounded-2xl p-6 md:p-10 shadow-sm">
+        <div class="absolute inset-0 opacity-20 pointer-events-none">
+            <div class="absolute -top-20 -right-20 w-72 h-72 bg-amber-500 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-24 -left-20 w-72 h-72 bg-sky-500 rounded-full blur-3xl"></div>
         </div>
-        
-        <div class="relative z-10 max-w-2xl">
-            <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 mb-2">Upgrade Your Digital Experience</h2>
-            <p class="text-sm md:text-base text-slate-500 leading-relaxed">
-                Welcome to <span class="text-amber-500 font-bold">Zemen Laptops</span>. Explore our elite catalog engineered for developers, digital architects, creators, and hardcore gamers alike.
+
+        <div class="relative z-10 max-w-3xl">
+            <span class="inline-flex items-center rounded-full bg-white/10 border border-white/10 px-3 py-1 text-xs font-bold text-amber-400 mb-5">
+                Zemen Laptops
+            </span>
+
+            <h1 class="text-3xl md:text-5xl font-black tracking-tight text-white mb-4">
+                Best laptops for work, gaming, school, creativity, and everyday power.
+            </h1>
+
+            <p class="text-sm md:text-base text-slate-300 leading-relaxed max-w-2xl">
+                Find reliable, high-performance laptops carefully selected for developers,
+                designers, students, business users, gamers, and power users.
             </p>
         </div>
     </div>
 
-    <!-- Products Catalog Grid System -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for laptop in laptops %}
-        <div class="group flex flex-col bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md hover:border-slate-300">
-            
-            <!-- Laptop Preview Thumbnail Container Frame -->
-            <div class="relative h-56 bg-slate-50 border-b border-slate-100 flex items-center justify-center p-6 overflow-hidden">
-                {% if laptop.image %}
-                    <img src="{{ laptop.image.url }}" class="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-105" alt="{{ laptop.name }}">
-                {% else %}
-                    <div class="flex flex-col items-center justify-center text-slate-300 py-10">
-                        <svg class="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                    </div>
-                {% endif %}
-                
-                <!-- Absolute Positioned Tech Brand Badge Tag -->
-                <span class="absolute top-4 left-4 inline-flex items-center justify-center bg-slate-950 text-amber-400 text-[10px] font-extrabold tracking-wider uppercase px-2.5 py-1 rounded-lg shadow-sm">
-                    {{ laptop.brand }}
+    <div class="space-y-5">
+        <div class="flex items-center justify-between gap-4">
+            <div>
+                <span class="inline-flex items-center gap-2 rounded-full bg-amber-50 border border-amber-100 px-4 py-2 text-sm font-extrabold text-slate-900">
+                    <span class="text-lg">🔥</span>
+                    <span>Hottest Items</span>
                 </span>
             </div>
+        </div>
 
-            <!-- Content Card Body Block -->
-            <div class="flex flex-col flex-grow p-5">
-                <h3 class="text-base font-bold text-slate-900 mb-4 truncate transition-colors group-hover:text-amber-500" title="{{ laptop.name }}">
-                    {{ laptop.name }}
-                </h3>
-                
-                <!-- Internal Component Parameter Specification Table List -->
-                <div class="space-y-2 mb-6">
-                    <div class="flex items-center justify-between rounded-xl bg-slate-50 border border-slate-100 p-2.5 text-xs">
-                        <span class="inline-flex items-center gap-2 font-medium text-slate-400">
-                            <svg class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 5h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2z" /></svg>
-                            Processor
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for laptop in laptops %}
+                <div class="group flex flex-col bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md hover:border-slate-300">
+
+                    <div class="relative h-56 bg-slate-50 border-b border-slate-100 flex items-center justify-center p-6 overflow-hidden">
+                        {% if laptop.image %}
+                            <img
+                                src="{{ laptop.image.url }}"
+                                class="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-105"
+                                alt="{{ laptop.name }}"
+                            >
+                        {% else %}
+                            <div class="flex flex-col items-center justify-center text-slate-300 py-10">
+                                <svg class="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                        {% endif %}
+
+                        <span class="absolute top-4 left-4 inline-flex items-center justify-center bg-slate-950 text-amber-400 text-[10px] font-extrabold tracking-wider uppercase px-2.5 py-1 rounded-lg shadow-sm gap-1">
+                            <span>Rank #{{ forloop.counter }}</span>
+                            &middot;
+                            <span>{{ laptop.brand }}</span>
                         </span>
-                        <span class="font-semibold text-slate-700">{{ laptop.processor|default:"Core i7" }}</span>
-                    </div>
-                    
-                    <div class="flex items-center justify-between rounded-xl bg-slate-50 border border-slate-100 p-2.5 text-xs">
-                        <span class="inline-flex items-center gap-2 font-medium text-slate-400">
-                            <svg class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 12a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9" /></svg>
-                            Memory
-                        </span>
-                        <span class="font-semibold text-slate-700">{{ laptop.ram|default:"16GB RAM" }}</span>
                     </div>
 
-                    <div class="flex items-center justify-between rounded-xl bg-slate-50 border border-slate-100 p-2.5 text-xs">
-                        <span class="inline-flex items-center gap-2 font-medium text-slate-400">
-                            <svg class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
-                            Storage
-                        </span>
-                        <span class="font-semibold text-slate-700">{{ laptop.storage|default:"512GB SSD" }}</span>
-                    </div>
-                </div>
+                    <div class="flex flex-col flex-grow p-5">
+                        <h3
+                            class="text-base font-bold text-slate-900 mb-4 truncate transition-colors group-hover:text-amber-500"
+                            title="{{ laptop.name }}"
+                        >
+                            {{ laptop.name }}
+                        </h3>
 
-                <!-- Footer Checkout Interaction Elements -->
-                <div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between gap-4">
-                    <div>
-                        <span class="block text-[9px] font-extrabold tracking-wider text-slate-400 uppercase">Price</span>
-                        <div class="flex items-baseline gap-1">
-                            <span class="text-lg font-black text-slate-900">{{ laptop.price }}</span>
-                            <span class="text-xs font-semibold text-slate-400">ETB</span>
+                        <div class="space-y-2 mb-6">
+                            <div class="flex items-center justify-between rounded-xl bg-slate-50 border border-slate-100 p-2.5 text-xs">
+                                <span class="inline-flex items-center gap-2 font-medium text-slate-400">
+                                    <svg class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 5h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2z" />
+                                    </svg>
+                                    Processor
+                                </span>
+
+                                <span class="font-semibold text-slate-700">
+                                    {{ laptop.processor|default:"Core i7" }}
+                                </span>
+                            </div>
+
+                            <div class="flex items-center justify-between rounded-xl bg-slate-50 border border-slate-100 p-2.5 text-xs">
+                                <span class="inline-flex items-center gap-2 font-medium text-slate-400">
+                                    <svg class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 12a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9" />
+                                    </svg>
+                                    Memory
+                                </span>
+
+                                <span class="font-semibold text-slate-700">
+                                    {{ laptop.ram|default:"16GB RAM" }}
+                                </span>
+                            </div>
+
+                            <div class="flex items-center justify-between rounded-xl bg-slate-50 border border-slate-100 p-2.5 text-xs">
+                                <span class="inline-flex items-center gap-2 font-medium text-slate-400">
+                                    <svg class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                    </svg>
+                                    Storage
+                                </span>
+
+                                <span class="font-semibold text-slate-700">
+                                    {{ laptop.storage|default:"512GB SSD" }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between gap-4">
+                            <div>
+                                <span class="block text-[9px] font-extrabold tracking-wider text-slate-400 uppercase">
+                                    Price
+                                </span>
+
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-lg font-black text-slate-900">
+                                        {{ laptop.price }}
+                                    </span>
+
+                                    <span class="text-xs font-semibold text-slate-400">
+                                        ETB
+                                    </span>
+                                </div>
+                            </div>
+
+                            <button
+                                data-id="{{ laptop.id }}"
+                                class="add-to-cart-btn inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-slate-950 shadow-sm transition-all hover:bg-amber-400 hover:shadow-md hover:shadow-amber-500/15 active:scale-[0.98]"
+                            >
+                                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+
+                                <span>Add</span>
+                            </button>
                         </div>
                     </div>
-                    
-                    <button data-id="{{ laptop.id }}" class="add-to-cart-btn inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-slate-950 shadow-sm transition-all hover:bg-amber-400 hover:shadow-md hover:shadow-amber-500/15 active:scale-[0.98]">
-                        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span>Add</span>
-                    </button>
                 </div>
-            </div>
+            {% empty %}
+                <div class="col-span-full flex flex-col items-center justify-center text-center py-16 bg-white border border-slate-200 border-dashed rounded-2xl">
+                    <svg class="w-16 h-16 text-slate-300 stroke-[1.25]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+
+                    <p class="mt-4 text-sm font-semibold text-slate-500">
+                        No popular laptops tracked yet. Complete an order to generate metrics!
+                    </p>
+                </div>
+            {% endfor %}
         </div>
-        {% empty %}
-        <!-- Empty Fallback Interface Node -->
-        <div class="col-span-full flex flex-col items-center justify-center text-center py-16 bg-white border border-slate-200 border-dashed rounded-2xl">
-            <svg class="w-16 h-16 text-slate-300 stroke-[1.25]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+    </div>
+
+    <div class="relative overflow-hidden bg-white border border-slate-200/80 rounded-2xl p-6 md:p-8 shadow-sm">
+        <div class="absolute right-0 top-0 h-full w-1/2 opacity-[0.04] pointer-events-none hidden md:flex items-center justify-end pr-10">
+            <svg class="w-48 h-48 text-slate-950" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M3.75 5.25h16.5m-16.5 0A2.25 2.25 0 016 3h12a2.25 2.25 0 012.25 2.25m-16.5 0v13.5A2.25 2.25 0 006 21h12a2.25 2.25 0 002.25-2.25V5.25m-12 4.5h7.5m-7.5 3h7.5m-7.5 3h4.5" />
             </svg>
-            <p class="mt-4 text-sm font-semibold text-slate-500">No laptops available at the moment. Check back soon!</p>
         </div>
-        {% endfor %}
+
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div class="max-w-2xl">
+                <span class="inline-flex items-center gap-2 rounded-full bg-slate-100 border border-slate-200 px-3 py-1 text-xs font-extrabold text-slate-700 mb-4">
+                    <svg class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                    </svg>
+                    Full Catalog
+                </span>
+
+                <h2 class="text-2xl md:text-3xl font-black tracking-tight text-slate-900 mb-2">
+                    Explore our full catalog
+                </h2>
+
+                <p class="text-sm md:text-base text-slate-500 leading-relaxed">
+                    Browse all available laptops, compare specs, check prices, and find the perfect machine for your needs.
+                </p>
+            </div>
+
+            <a
+                href="/laptops/"
+                class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-800 hover:shadow-md active:scale-[0.98]"
+            >
+                <span>View Catalog</span>
+
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+            </a>
+        </div>
     </div>
 </div>
 
-<!-- Reactive Script Logic Layer Control Node -->
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const cartButtons = document.querySelectorAll('.add-to-cart-btn');
-
     cartButtons.forEach(button => {
         button.addEventListener('click', (e) => {
-            e.preventDefault(); 
-            
+            e.preventDefault();
             const productId = String(button.getAttribute('data-id'));
             let cart = JSON.parse(localStorage.getItem('zemen_cart')) || [];
-            
             if (!cart.includes(productId)) {
                 cart.push(productId);
             }
-            
             localStorage.setItem('zemen_cart', JSON.stringify(cart));
-            
+
             if (typeof updateGlobalNavbarCartCount === 'function') {
                 updateGlobalNavbarCartCount();
             }
-            
-            // Modern Animated Context Success State Feedback Transition styling transformations
+
             const originalContent = button.innerHTML;
+
             button.className = "add-to-cart-btn inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all pointer-events-none";
+
             button.innerHTML = `
                 <svg class="w-4 h-4 animate-scaleIn" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

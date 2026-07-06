@@ -1,16 +1,14 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Your Cart | Zemen Laptops{% endblock %}
+{% block title %}Cart{% endblock %}
 
 {% block content %}
 <div class="mb-8">
     <h2 class="text-2xl font-extrabold tracking-tight text-slate-900 mb-1">Your Shopping Bag</h2>
     <p class="text-sm text-slate-500">Review your custom-engineered workspace hardware configurations before checkout.</p>
 </div>
-
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-    
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">   
     <div class="lg:col-span-8 space-y-4" id="cart-items-container">
         <div class="flex items-center justify-center py-16 bg-white border border-slate-200/80 rounded-2xl shadow-sm" id="cart-loading-spinner">
             <div class="relative flex h-10 w-10">
@@ -24,18 +22,29 @@
             </div>
         </div>
     </div>
-
     <div class="lg:col-span-4 sticky top-24 z-10">
-        <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm">
-            <h4 class="text-base font-extrabold text-slate-900 tracking-tight mb-5">Order Summary</h4>
-            
-            <div class="space-y-4 mb-6">
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-5">
+            <h4 class="text-base font-extrabold text-slate-900 tracking-tight">Order Summary</h4>
+            <div class="bg-slate-50 rounded-xl p-3 border border-slate-200/60">
+                <label class="block text-xs font-bold text-slate-700 tracking-wide uppercase mb-2">Fulfillment Method</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="flex items-center justify-center gap-1.5 rounded-lg border bg-white p-2.5 text-xs font-bold text-slate-700 cursor-pointer transition hover:bg-slate-50 border-amber-500 ring-2 ring-amber-500/10" id="label-delivery">
+                        <input type="radio" name="delivery_method_toggle" value="delivery" checked class="sr-only">
+                        <span>Standard Delivery</span>
+                    </label>
+                    <label class="flex items-center justify-center gap-1.5 rounded-lg border bg-white p-2.5 text-xs font-bold text-slate-600 cursor-pointer transition hover:bg-slate-50 border-slate-200" id="label-pickup">
+                        <input type="radio" name="delivery_method_toggle" value="pickup" class="sr-only">
+                        <span>In-Store Pickup</span>
+                    </label>
+                </div>
+            </div>
+            <div class="space-y-4">
                 <div class="flex justify-between items-center text-xs font-semibold">
                     <span class="text-slate-400">Subtotal (<span id="summary-item-count">0</span> items)</span>
                     <span class="text-slate-700 font-bold"><span id="summary-subtotal">0.00</span> <span class="text-[10px] text-slate-400 font-normal">ETB</span></span>
                 </div>
                 <div class="flex justify-between items-center text-xs font-semibold">
-                    <span class="text-slate-400">Delivery Fee</span>
+                    <span class="text-slate-400">Logistics Fee</span>
                     <span class="text-emerald-600 font-extrabold uppercase tracking-wide">Free</span>
                 </div>
                 <div class="border-t border-slate-100 my-1"></div>
@@ -47,107 +56,185 @@
                     </div>
                 </div>
             </div>
-
+            {% csrf_token %}
             <button id="checkout-btn" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 py-3 text-xs font-bold text-slate-950 shadow-sm transition-all hover:bg-amber-400 hover:shadow-md hover:shadow-amber-500/15 disabled:opacity-40 disabled:pointer-events-none active:scale-[0.98]" disabled>
                 <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-3-12.75h3.75c.621 0 1.125.504 1.125 1.125V18a1.125 1.125 0 01-1.125 1.125H5.625A1.125 1.125 0 014.5 18V6.75c0-.621.504-1.125 1.125-1.125h12.75c.621 0 1.125.504 1.125 1.125v1.125" />
                 </svg>
-                <span>Proceed to Secure Checkout</span>
+                <span id="checkout-text">Proceed to Secure Checkout</span>
             </button>
         </div>
     </div>
 </div>
-
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const itemsContainer = document.getElementById('cart-items-container');
     const loadingSpinner = document.getElementById('cart-loading-spinner');
-    
     const summaryCount = document.getElementById('summary-item-count');
     const summarySubtotal = document.getElementById('summary-subtotal');
     const summaryTotal = document.getElementById('summary-total');
     const checkoutBtn = document.getElementById('checkout-btn');
+    const checkoutText = document.getElementById('checkout-text');
+    const toggleRadios = document.querySelectorAll('input[name="delivery_method_toggle"]');
+    const labelDelivery = document.getElementById('label-delivery');
+    const labelPickup = document.getElementById('label-pickup');
 
     let rawCart = JSON.parse(localStorage.getItem('zemen_cart')) || [];
-    let cartIds = rawCart.map(id => String(id).trim()).filter(id => id.length > 0);
+    let cartQuantityMap = buildCartQuantityMap(rawCart);
+    let cartIds = Object.keys(cartQuantityMap);
+    let currentItems = [];
+
+    toggleRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (e.target.value === 'delivery') {
+                labelDelivery.className = "flex items-center justify-center gap-1.5 rounded-lg border bg-white p-2.5 text-xs font-bold text-slate-700 cursor-pointer transition border-amber-500 ring-2 ring-amber-500/10";
+                labelPickup.className = "flex items-center justify-center gap-1.5 rounded-lg border bg-white p-2.5 text-xs font-bold text-slate-600 cursor-pointer transition border-slate-200";
+            } else {
+                labelPickup.className = "flex items-center justify-center gap-1.5 rounded-lg border bg-white p-2.5 text-xs font-bold text-slate-700 cursor-pointer transition border-amber-500 ring-2 ring-amber-500/10";
+                labelDelivery.className = "flex items-center justify-center gap-1.5 rounded-lg border bg-white p-2.5 text-xs font-bold text-slate-600 cursor-pointer transition border-slate-200";
+            }
+        });
+    });
 
     if (cartIds.length === 0) {
         renderEmptyState();
         return;
     }
 
-    fetch('/api/cart-items/?ids=' + cartIds.join(','))
+    fetch('/api/cart-items/?ids=' + encodeURIComponent(cartIds.join(',')))
         .then(res => {
             if (!res.ok) throw new Error(`HTTP Error Status: ${res.status}`);
             return res.json();
         })
         .then(data => {
             if (loadingSpinner) loadingSpinner.remove();
+
             if (!data.items || data.items.length === 0) {
                 renderEmptyState();
                 return;
             }
-            renderCartItems(data.items);
+            currentItems = data.items.map(item => {
+                const id = String(item.id);
+                return {
+                    ...item,
+                    requested_quantity: cartQuantityMap[id] || 1
+                };
+            });
+            renderCartItems();
         })
         .catch(err => {
             console.error("Cart retrieval breakdown:", err);
             if (loadingSpinner) loadingSpinner.remove();
-            
-            itemsContainer.innerHTML = `
-                <div class="flex gap-4 rounded-2xl border border-rose-200 bg-rose-50/50 p-5 text-rose-900" role="alert">
-                    <svg class="w-5 h-5 text-rose-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                    <div>
-                        <h5 class="font-bold text-sm mb-1 text-rose-900">Failed to connect to database</h5>
-                        <p class="text-xs text-rose-700/80 mb-3">The runtime engine failed to retrieve item models.</p>
-                        <span class="inline-block rounded-lg bg-rose-500/10 px-2.5 py-1 text-[11px] font-mono font-bold tracking-wide text-rose-600">${err.message}</span>
-                    </div>
-                </div>`;
+            showErrorAlert(err.message);
         });
 
-    function renderCartItems(items) {
-        itemsContainer.innerHTML = ''; 
+    function buildCartQuantityMap(cart) {
+        const quantityMap = {};
+        if (Array.isArray(cart)) {
+            cart.forEach(entry => {
+                if (entry && typeof entry === 'object') {
+                    const id = String(entry.id || entry.laptop_id || '').trim();
+                    const quantity = parseInt(entry.quantity || entry.qty || 1);
+                    if (id && quantity > 0) {
+                        quantityMap[id] = (quantityMap[id] || 0) + quantity;
+                    }
+                } else {
+                    const id = String(entry).trim();
+                    if (id) {
+                        quantityMap[id] = (quantityMap[id] || 0) + 1;
+                    }
+                }
+            });
+        }
+        return quantityMap;
+    }
+
+    function persistCartToLocalStorage() {
+        const expandedCart = [];
+        Object.keys(cartQuantityMap).forEach(id => {
+            const quantity = parseInt(cartQuantityMap[id]) || 0;
+            for (let i = 0; i < quantity; i++) {
+                expandedCart.push(id);
+            }
+        });
+        localStorage.setItem('zemen_cart', JSON.stringify(expandedCart));
+    }
+
+    function renderCartItems() {
+        removeTopWarning();
+        itemsContainer.innerHTML = '';
         let totalSum = 0;
-        
-        items.forEach(item => {
+        let totalUnits = 0;
+        const validation = validateCartStock();
+
+        currentItems.forEach(item => {
             const itemPrice = parseFloat(item.price) || 0;
-            totalSum += itemPrice;
-            
+            const requestedQty = parseInt(item.requested_quantity) || 1;
+            const availableQty = parseInt(item.available_quantity) || 0;
+            const lineTotal = itemPrice * requestedQty;
+
+            totalSum += lineTotal;
+            totalUnits += requestedQty;
+
+            const hasEnoughStock = requestedQty <= availableQty && availableQty > 0;
+            const rowBorderClass = hasEnoughStock ? 'border-slate-200/80' : 'border-rose-300';
+            const stockBadgeClass = hasEnoughStock ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-rose-50 border-rose-100 text-rose-700';
+            const stockText = availableQty > 0 ? `Available: ${availableQty}` : 'Out of stock';
+
+            const decreaseDisabled = requestedQty <= 1 ? 'disabled' : '';
+            const increaseDisabled = requestedQty >= availableQty ? 'disabled' : '';
+
             const fallbackImg = `
                 <div class="bg-slate-50 border border-slate-200/60 rounded-xl flex items-center justify-center w-full h-full text-slate-300">
-                    <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke-width="1.25" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                </div>`;
-            
+                    <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke-width="1.25" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+            `;
+
             const productImg = item.image_url ? `
-                <img src="${item.image_url}" alt="${item.name}" class="max-w-full max-h-full object-contain rounded-xl border border-slate-200/60 p-2 bg-white">` 
-                : fallbackImg;
+                <img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}" class="max-w-full max-h-full object-contain rounded-xl border border-slate-200/60 p-2 bg-white">
+            ` : fallbackImg;
 
             const layoutRow = document.createElement('div');
-            layoutRow.className = 'bg-white border border-slate-200/80 rounded-2xl p-4 md:p-5 relative shadow-sm transition-all';
+            layoutRow.className = `bg-white border ${rowBorderClass} rounded-2xl p-4 md:p-5 relative shadow-sm transition-all`;
             layoutRow.id = `cart-row-${item.id}`;
+
             layoutRow.innerHTML = `
                 <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4">
-                    
                     <div class="flex shrink-0 mx-auto md:mx-0 w-full md:w-36 h-28 items-center justify-center">
                         ${productImg}
                     </div>
-                    
                     <div class="flex-grow text-center md:text-left min-w-0">
-                        <span class="text-amber-500 text-[10px] font-extrabold tracking-wider uppercase block mb-0.5">${item.brand}</span>
-                        <h3 class="font-bold text-slate-900 text-sm md:text-base mb-3 truncate" title="${item.name}">${item.name}</h3>
-                        <div class="flex flex-wrap justify-content-center justify-md-start gap-1.5 justify-center md:justify-start">
-                            <span class="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 border border-slate-100 px-2 py-1 text-[11px] font-medium text-slate-500"><svg class="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 5h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2z"/></svg>${item.processor || 'Core i7'}</span>
-                            <span class="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 border border-slate-100 px-2 py-1 text-[11px] font-medium text-slate-500"><svg class="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 12a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z"/></svg>${item.ram || '16GB'}</span>
-                            <span class="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 border border-slate-100 px-2 py-1 text-[11px] font-medium text-slate-500"><svg class="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>${item.storage || '512GB SSD'}</span>
+                        <span class="text-amber-500 text-[10px] font-extrabold tracking-wider uppercase block mb-0.5">${escapeHtml(item.brand)}</span>
+                        <h3 class="font-bold text-slate-900 text-sm md:text-base mb-3 truncate" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</h3>
+                        <div class="flex flex-wrap justify-center md:justify-start gap-1.5 mb-3">
+                            <span class="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 border border-slate-100 px-2 py-1 text-[11px] font-medium text-slate-500">${escapeHtml(item.processor || 'Processor')}</span>
+                            <span class="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 border border-slate-100 px-2 py-1 text-[11px] font-medium text-slate-500">${escapeHtml(item.ram || 'RAM')}</span>
+                            <span class="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 border border-slate-100 px-2 py-1 text-[11px] font-medium text-slate-500">${escapeHtml(item.storage || 'Storage')}</span>
                         </div>
+                        <div class="flex flex-wrap justify-center md:justify-start items-center gap-2">
+                            <div class="inline-flex items-center rounded-xl border border-slate-200 bg-slate-50 overflow-hidden">
+                                <button type="button" class="decrease-qty-btn h-8 w-8 inline-flex items-center justify-center text-slate-700 font-black hover:bg-white disabled:opacity-40 disabled:pointer-events-none transition" data-id="${item.id}" ${decreaseDisabled}>-</button>
+                                <span class="h-8 min-w-10 px-3 inline-flex items-center justify-center bg-white border-x border-slate-200 text-xs font-black text-slate-900">${requestedQty}</span>
+                                <button type="button" class="increase-qty-btn h-8 w-8 inline-flex items-center justify-center text-slate-700 font-black hover:bg-white disabled:opacity-40 disabled:pointer-events-none transition" data-id="${item.id}" ${increaseDisabled}>+</button>
+                            </div>
+                            <span class="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-bold ${stockBadgeClass}">${stockText}</span>
+                        </div>
+                        ${!hasEnoughStock ? `<p class="mt-2 text-[11px] font-semibold text-rose-600">You selected ${requestedQty}, but only ${availableQty} is available.</p>` : ''}
                     </div>
-                    
                     <div class="flex flex-row md:flex-col justify-between items-center md:items-end gap-3 border-t border-slate-100 md:border-t-0 pt-3 md:pt-0 mt-1 md:mt-0">
                         <div class="text-right">
-                            <span class="text-base font-black text-slate-900">${itemPrice.toLocaleString()}</span>
-                            <span class="text-[10px] font-bold text-slate-400 ml-0.5">ETB</span>
+                            <div>
+                                <span class="text-base font-black text-slate-900">${lineTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                <span class="text-[10px] font-bold text-slate-400 ml-0.5">ETB</span>
+                            </div>
+                            <div class="text-[10px] text-slate-400 font-semibold mt-0.5">${itemPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB each</div>
                         </div>
                         <button class="remove-item-btn inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-rose-600 hover:bg-rose-50 transition-colors" data-id="${item.id}" title="Remove laptop configuration">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                            </svg>
                             <span>Remove</span>
                         </button>
                     </div>
@@ -156,27 +243,69 @@ document.addEventListener('DOMContentLoaded', () => {
             itemsContainer.appendChild(layoutRow);
         });
 
-        summaryCount.textContent = items.length;
-        summarySubtotal.textContent = totalSum.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        summaryTotal.textContent = totalSum.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        checkoutBtn.disabled = false;
+        summaryCount.textContent = totalUnits;
+        summarySubtotal.textContent = totalSum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        summaryTotal.textContent = totalSum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-        setupRemovalTriggers(items);
+        checkoutBtn.disabled = !validation.valid;
+        if (!validation.valid) showTopWarning(validation.message);
+
+        setupQuantityButtons();
+        setupRemovalTriggers();
     }
 
-    function setupRemovalTriggers(itemsList) {
-        let reactiveItems = [...itemsList];
-        
+    function setupQuantityButtons() {
+        document.querySelectorAll('.increase-qty-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                increaseQuantity(String(btn.getAttribute('data-id')));
+            });
+        });
+
+        document.querySelectorAll('.decrease-qty-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                decreaseQuantity(String(btn.getAttribute('data-id')));
+            });
+        });
+    }
+
+    function increaseQuantity(id) {
+        const item = currentItems.find(product => String(product.id) === String(id));
+        if (!item) return;
+
+        const currentQty = parseInt(item.requested_quantity) || 1;
+        const availableQty = parseInt(item.available_quantity) || 0;
+
+        if (currentQty >= availableQty) {
+            showTopWarning(`Only ${availableQty} of ${item.name} is available.`);
+            return;
+        }
+
+        item.requested_quantity = currentQty + 1;
+        cartQuantityMap[id] = item.requested_quantity;
+        persistCartToLocalStorage();
+        if (typeof updateGlobalNavbarCartCount === 'function') updateGlobalNavbarCartCount();
+        renderCartItems();
+    }
+
+    function decreaseQuantity(id) {
+        const item = currentItems.find(product => String(product.id) === String(id));
+        if (!item || (parseInt(item.requested_quantity) || 1) <= 1) return;
+
+        item.requested_quantity = (parseInt(item.requested_quantity) || 1) - 1;
+        cartQuantityMap[id] = item.requested_quantity;
+        persistCartToLocalStorage();
+        if (typeof updateGlobalNavbarCartCount === 'function') updateGlobalNavbarCartCount();
+        renderCartItems();
+    }
+
+    function setupRemovalTriggers() {
         document.querySelectorAll('.remove-item-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const idToRemove = String(btn.getAttribute('data-id')).trim();
-                
-                cartIds = cartIds.filter(id => String(id).trim() !== idToRemove);
-                localStorage.setItem('zemen_cart', JSON.stringify(cartIds));
-                
-                if (typeof updateGlobalNavbarCartCount === 'function') {
-                    updateGlobalNavbarCartCount();
-                }
+                delete cartQuantityMap[idToRemove];
+                persistCartToLocalStorage();
+
+                if (typeof updateGlobalNavbarCartCount === 'function') updateGlobalNavbarCartCount();
 
                 const targetRow = document.getElementById(`cart-row-${idToRemove}`);
                 if (targetRow) {
@@ -184,20 +313,114 @@ document.addEventListener('DOMContentLoaded', () => {
                     targetRow.style.opacity = '0';
                     targetRow.style.transform = 'scale(0.97)';
                     setTimeout(() => {
-                        targetRow.remove();
-                        reactiveItems = reactiveItems.filter(item => String(item.id).trim() !== idToRemove);
-                        if (reactiveItems.length === 0) {
-                            renderEmptyState();
-                        } else {
-                            renderCartItems(reactiveItems);
-                        }
+                        currentItems = currentItems.filter(item => String(item.id) !== idToRemove);
+                        if (currentItems.length === 0) renderEmptyState();
+                        else renderCartItems();
                     }, 200);
                 }
             });
         });
     }
 
+    function validateCartStock() {
+        if (!currentItems || currentItems.length === 0) return { valid: false, message: 'Your cart is empty.' };
+        for (const item of currentItems) {
+            const requestedQty = parseInt(item.requested_quantity) || 0;
+            const availableQty = parseInt(item.available_quantity) || 0;
+            if (requestedQty <= 0) return { valid: false, message: `Invalid quantity for ${item.name}.` };
+            if (availableQty <= 0) return { valid: false, message: `${item.name} is currently out of stock.` };
+            if (requestedQty > availableQty) return { valid: false, message: `You requested ${requestedQty} of ${item.name}, but only ${availableQty} is available.` };
+        }
+        return { valid: true, message: '' };
+    }
+
+    checkoutBtn.addEventListener('click', () => {
+        const validation = validateCartStock();
+        if (!validation.valid) {
+            showTopWarning(validation.message);
+            checkoutBtn.disabled = true;
+            return;
+        }
+
+        checkoutBtn.disabled = true;
+        checkoutText.textContent = "Processing order...";
+
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const checkoutItems = currentItems.map(item => ({
+            id: item.id,
+            quantity: parseInt(item.requested_quantity) || 1
+        }));
+
+        const activeFulfillmentChoice = document.querySelector('input[name="delivery_method_toggle"]:checked').value;
+
+        fetch('{% url "initialize_payment" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                cart_items: checkoutItems,
+                delivery_method: activeFulfillmentChoice
+            })
+        })
+        .then(res => res.json().then(data => ({ ok: res.ok, data })))
+        .then(({ ok, data }) => {
+            if (!ok) throw new Error(data.error || 'Failed to initialize payment.');
+            if (data.checkout_url) {
+                localStorage.removeItem('zemen_cart');
+                window.location.href = data.checkout_url;
+            } else {
+                throw new Error(data.error || 'Failed to initialize payment runtime.');
+            }
+        })
+        .catch(err => {
+            console.error("Checkout Exception:", err);
+            checkoutBtn.disabled = false;
+            checkoutText.textContent = "Proceed to Secure Checkout";
+            showTopWarning(`Checkout Failed: ${err.message}`);
+        });
+    });
+
+    function showTopWarning(message) {
+        removeTopWarning();
+        const warningHtml = `
+            <div id="cart-stock-warning" class="lg:col-span-8 rounded-2xl border border-rose-200 bg-rose-50/70 p-4 text-rose-900 shadow-sm mb-4">
+                <div class="flex gap-3">
+                    <svg class="w-5 h-5 text-rose-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <div>
+                        <h5 class="font-bold text-sm mb-1 text-rose-900">Stock Issue</h5>
+                        <p class="text-xs text-rose-700/90">${escapeHtml(message)}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        itemsContainer.insertAdjacentHTML('beforebegin', warningHtml);
+    }
+
+    function removeTopWarning() {
+        const oldWarning = document.getElementById('cart-stock-warning');
+        if (oldWarning) oldWarning.remove();
+    }
+
+    function showErrorAlert(message) {
+        itemsContainer.innerHTML = `
+            <div class="flex gap-4 rounded-2xl border border-rose-200 bg-rose-50/50 p-5 text-rose-900" role="alert">
+                <svg class="w-5 h-5 text-rose-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <div>
+                    <h5 class="font-bold text-sm mb-1 text-rose-900">Checkout Issue</h5>
+                    <p class="text-xs text-rose-700/80 mb-3">${escapeHtml(message)}</p>
+                </div>
+            </div>
+        `;
+    }
+
     function renderEmptyState() {
+        removeTopWarning();
         if (loadingSpinner) loadingSpinner.remove();
         itemsContainer.innerHTML = `
             <div class="flex flex-col items-center justify-center text-center py-16 bg-white border border-slate-200/80 border-dashed rounded-2xl shadow-sm">
@@ -206,15 +429,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 </svg>
                 <h4 class="font-bold text-slate-900 mt-4 text-base">Your cart is empty</h4>
                 <p class="text-xs text-slate-400 max-w-xs mt-1 mb-5">Looks like you haven't added any gear to your configurations yet.</p>
-                <a href="{% url 'laptop_catalog' %}" class="inline-flex items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 text-xs font-bold transition shadow-sm">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7-5m-7 5h18" /></svg>
+                <a href="/" class="inline-flex items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 text-xs font-bold transition shadow-sm">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7-5m-7 5h18" />
+                    </svg>
                     <span>Browse Laptops Catalog</span>
                 </a>
-            </div>`;
+            </div>
+        `;
         summaryCount.textContent = '0';
         summarySubtotal.textContent = '0.00';
         summaryTotal.textContent = '0.00';
         checkoutBtn.disabled = true;
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }
 });
 </script>
