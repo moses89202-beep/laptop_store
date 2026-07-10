@@ -6,7 +6,6 @@
     <title>Admin Dashboard | Zemen Laptops</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23f59e0b' stroke-width='2.5'><path stroke-linecap='round' stroke-linejoin='round' d='M4.5 5.25A2.25 2.25 0 016.75 3h10.5a2.25 2.25 0 012.25 2.25v9H4.5v-9z'/><path stroke-linecap='round' stroke-linejoin='round' d='M2.25 18.75h19.5l-1.5-4.5H3.75l-1.5 4.5z'/><path stroke-linecap='round' stroke-linejoin='round' d='M9.75 17.25h4.5'/></svg>">
     
-    <!-- TailWind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -18,26 +17,30 @@
     </style>
 </head>
 
-<body class="flex min-h-full bg-[#f8fafc] text-slate-800 antialiased">
+<body class="flex min-h-full bg-[#f8fafc] text-slate-800 antialiased overflow-x-hidden">
 
-    <div class="flex w-full min-h-screen">
+    <div class="flex w-full min-h-screen relative">
         
-        <!-- Sidebar Navigation -->
-        <aside class="w-64 bg-slate-950 text-slate-200 flex flex-col shrink-0 border-r border-slate-900">
-            <!-- Brand Logo Header -->
-            <div class="p-6 border-b border-slate-900 flex items-center gap-3">
-                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500 text-slate-950 shadow-sm shadow-amber-500/20">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 5.25A2.25 2.25 0 016.75 3h10.5a2.25 2.25 0 012.25 2.25v9H4.5v-9z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75h19.5l-1.5-4.5H3.75l-1.5 4.5z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17.25h4.5" />
-                    </svg>
+        <div id="sidebar-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-20 hidden lg:hidden transition-opacity duration-300 opacity-0"></div>
+
+        <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-slate-950 text-slate-200 flex flex-col shrink-0 border-r border-slate-900 z-30 transform -translate-x-full lg:translate-x-0 lg:static lg:flex transition-transform duration-300 ease-in-out">
+            <div class="p-6 border-b border-slate-900 flex items-center justify-between lg:justify-start gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500 text-slate-950 shadow-sm shadow-amber-500/20">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 5.25A2.25 2.25 0 016.75 3h10.5a2.25 2.25 0 012.25 2.25v9H4.5v-9z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75h19.5l-1.5-4.5H3.75l-1.5 4.5z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17.25h4.5" />
+                        </svg>
+                    </div>
+                    <span class="font-extrabold text-sm tracking-wider text-white">ZEMEN ADMIN</span>
                 </div>
-                <span class="font-extrabold text-sm tracking-wider text-white">ZEMEN ADMIN</span>
+                <button id="close-sidebar" class="lg:hidden h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-900 transition">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
             </div>
 
-            <!-- Navigation Links -->
-            <nav class="flex-1 p-4 space-y-1.5 text-xs font-bold uppercase tracking-wider">
+            <nav class="flex-1 p-4 space-y-1.5 text-xs font-bold uppercase tracking-wider overflow-y-auto">
                 <a href="{% url 'dashboard' %}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-white transition-all">
                     <i class="fa-solid fa-chart-pie w-5 text-slate-500 hover:text-amber-500 text-sm"></i>
                     <span>Home Metrics</span>
@@ -59,75 +62,73 @@
                 </a>
             </nav>
 
-            <!-- Sidebar Footer -->
             <div class="p-6 border-t border-slate-900 text-[10px] font-extrabold uppercase tracking-wider text-slate-600 text-center">
                 &copy; 2026 Zemen Admin
             </div>
         </aside>
 
-        <!-- Main Workspace Area -->
-        <main class="flex-grow flex flex-col min-w-0">
+        <main class="flex-grow flex flex-col min-w-0 w-full">
             
-            <!-- Global Admin Top Header -->
-            <header class="bg-white/80 backdrop-blur-md border-b border-slate-200/80 h-16 flex items-center justify-between px-8 sticky top-0 z-10 shadow-xs">
-                <div class="text-xs font-extrabold uppercase tracking-wider text-slate-900">System Management Suite</div>
+            <header class="bg-white/80 backdrop-blur-md border-b border-slate-200/80 h-16 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-10 shadow-xs">
                 <div class="flex items-center gap-3">
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Administrator</span>
+                    <button id="open-sidebar" class="lg:hidden h-9 w-9 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:text-slate-900 shadow-xs transition">
+                        <i class="fa-solid fa-bars-staggered text-sm"></i>
+                    </button>
+                    <div class="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-slate-900 truncate max-w-[180px] sm:max-w-none">
+                        System Management Suite
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <span class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 hidden sm:inline">Administrator</span>
                     <div class="h-8 w-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-extrabold text-xs shadow-sm shadow-amber-500/15">
                         A
                     </div>
                 </div>
             </header>
 
-            <!-- Page Content Body -->
-            <div class="p-8 flex-1 overflow-y-auto">
+            <div class="p-4 sm:p-8 flex-1 overflow-y-auto">
                 {% block dashboard_content %}
                 
-                <!-- Stat Card Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
                     
-                    <!-- Metric Card: Laptops -->
-                    <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm flex items-center justify-between relative overflow-hidden">
+                    <div class="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-sm flex items-center justify-between relative overflow-hidden">
                         <div class="absolute inset-x-6 top-0 h-12 bg-amber-400/5 blur-xl pointer-events-none"></div>
                         <div class="relative z-10">
                             <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Laptops Tracked</p>
-                            <h3 class="text-3xl font-extrabold text-slate-900 tracking-tight">{{ total_laptops }}</h3>
+                            <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">{{ total_laptops }}</h3>
                         </div>
                         <div class="relative z-10 flex h-11 w-11 items-center justify-center rounded-xl bg-slate-50 border border-slate-200/60 text-amber-500 shadow-xs">
                             <i class="fa-solid fa-laptop text-sm"></i>
                         </div>
                     </div>
 
-                    <!-- Metric Card: Users -->
-                    <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm flex items-center justify-between relative overflow-hidden">
+                    <div class="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-sm flex items-center justify-between relative overflow-hidden">
                         <div class="absolute inset-x-6 top-0 h-12 bg-amber-400/5 blur-xl pointer-events-none"></div>
                         <div class="relative z-10">
                             <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Registered Users</p>
-                            <h3 class="text-3xl font-extrabold text-slate-900 tracking-tight">{{ total_users }}</h3>
+                            <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">{{ total_users }}</h3>
                         </div>
                         <div class="relative z-10 flex h-11 w-11 items-center justify-center rounded-xl bg-slate-50 border border-slate-200/60 text-amber-500 shadow-xs">
                             <i class="fa-solid fa-users text-sm"></i>
                         </div>
                     </div>
 
-                    <!-- Metric Card: Orders -->
-                    <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm flex items-center justify-between relative overflow-hidden">
+                    <div class="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-sm flex items-center justify-between relative overflow-hidden">
                         <div class="absolute inset-x-6 top-0 h-12 bg-amber-400/5 blur-xl pointer-events-none"></div>
                         <div class="relative z-10">
                             <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Total Orders Placed</p>
-                            <h3 class="text-3xl font-extrabold text-slate-900 tracking-tight">{{ total_orders }}</h3>
+                            <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">{{ total_orders }}</h3>
                         </div>
                         <div class="relative z-10 flex h-11 w-11 items-center justify-center rounded-xl bg-slate-50 border border-slate-200/60 text-amber-500 shadow-xs">
                             <i class="fa-solid fa-box text-sm"></i>
                         </div>
                     </div>
 
-                    <!-- Metric Card: Reviews -->
-                    <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm flex items-center justify-between relative overflow-hidden">
+                    <div class="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-sm flex items-center justify-between relative overflow-hidden">
                         <div class="absolute inset-x-6 top-0 h-12 bg-amber-400/5 blur-xl pointer-events-none"></div>
                         <div class="relative z-10">
                             <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Reviews Logged</p>
-                            <h3 class="text-3xl font-extrabold text-slate-900 tracking-tight">{{ total_reviews }}</h3>
+                            <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">{{ total_reviews }}</h3>
                         </div>
                         <div class="relative z-10 flex h-11 w-11 items-center justify-center rounded-xl bg-slate-50 border border-slate-200/60 text-amber-500 shadow-xs">
                             <i class="fa-solid fa-star text-sm"></i>
@@ -136,26 +137,25 @@
 
                 </div>
 
-                <!-- Recent Orders Data Block -->
-                <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm overflow-hidden">
+                <div class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
                     <h2 class="text-base font-extrabold tracking-wide text-slate-900 mb-4">Recent Order Snapshot</h2>
-                    <div class="overflow-x-auto -mx-6 -mb-6">
-                        <table class="w-full text-left text-sm text-slate-600 min-w-[600px]">
+                    <div class="overflow-x-auto mx--4 sm:-mx-6 -mb-4 sm:-mb-6 block border-t border-slate-100">
+                        <table class="w-full text-left text-sm text-slate-600 min-w-[600px] table-auto">
                             <thead>
                                 <tr class="bg-slate-50 border-b border-slate-200/80 text-slate-500 uppercase font-extrabold text-[10px] tracking-wider">
-                                    <th class="py-3 px-6">TX Ref</th>
-                                    <th class="py-3 px-6">Customer</th>
-                                    <th class="py-3 px-6">Amount</th>
-                                    <th class="py-3 px-6">Payment</th>
+                                    <th class="py-3.5 px-4 sm:px-6">TX Ref</th>
+                                    <th class="py-3.5 px-4 sm:px-6">Customer</th>
+                                    <th class="py-3.5 px-4 sm:px-6">Amount</th>
+                                    <th class="py-3.5 px-4 sm:px-6">Payment</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
                                 {% for order in recent_orders %}
                                 <tr class="hover:bg-slate-50/50 transition">
-                                    <td class="py-3.5 px-6 font-mono text-xs text-slate-900 font-semibold">{{ order.tx_ref|truncatechars:15 }}</td>
-                                    <td class="py-3.5 px-6 font-bold text-slate-800">{{ order.customer }}</td>
-                                    <td class="py-3.5 px-6 font-extrabold text-slate-900">ETB{{ order.total_amount }}</td>
-                                    <td class="py-3.5 px-6">
+                                    <td class="py-3.5 px-4 sm:px-6 font-mono text-xs text-slate-900 font-semibold">{{ order.tx_ref|truncatechars:15 }}</td>
+                                    <td class="py-3.5 px-4 sm:px-6 font-bold text-slate-800">{{ order.customer }}</td>
+                                    <td class="py-3.5 px-4 sm:px-6 font-extrabold text-slate-900">ETB {{ order.total_amount }}</td>
+                                    <td class="py-3.5 px-4 sm:px-6">
                                         <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider
                                             {% if order.payment_status == 'completed' %} bg-emerald-50 text-emerald-700 border border-emerald-100
                                             {% elif order.payment_status == 'pending' %} bg-amber-50 text-amber-700 border border-amber-100
@@ -182,5 +182,27 @@
         </main>
     </div>
 
+    <script>
+        const openBtn = document.getElementById('open-sidebar');
+        const closeBtn = document.getElementById('close-sidebar');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+
+        function toggleSidebar(open) {
+            if (open) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('opacity-0');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+            }
+        }
+
+        openBtn.addEventListener('click', () => toggleSidebar(true));
+        closeBtn.addEventListener('click', () => toggleSidebar(false));
+        overlay.addEventListener('click', () => toggleSidebar(false));
+    </script>
 </body>
 </html>

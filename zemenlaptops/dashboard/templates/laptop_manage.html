@@ -15,7 +15,111 @@
         </button>
     </div>
 
-    <!-- Inventory Ledger Table Card -->
+    <!-- Red Low Stock Alert Highlight Cards (<20 units) -->
+    {% if low_stock_laptops %}
+    <div class="p-6 bg-rose-50/70 border border-rose-200/80 rounded-2xl shadow-xs space-y-4">
+        <div class="flex items-center gap-2.5 text-rose-800">
+            <i class="fa-solid fa-triangle-exclamation text-base animate-pulse"></i>
+            <h2 class="text-xs font-extrabold uppercase tracking-wider">Critical Inventory Alerts (Less than 20 Units)</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            {% for low_lap in low_stock_laptops %}
+            <div class="bg-white border border-rose-200/60 rounded-xl p-3.5 flex items-center justify-between shadow-xs hover:border-rose-400 transition">
+                <div class="flex items-center gap-3">
+                    {% if low_lap.image %}
+                        <img src="{{ low_lap.image.url }}" class="w-10 h-10 object-cover rounded-lg border border-slate-200" alt="{{ low_lap.name }}">
+                    {% else %}
+                        <div class="w-10 h-10 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-slate-400">
+                            <i class="fa-solid fa-laptop text-[10px]"></i>
+                        </div>
+                    {% endif %}
+                    <div>
+                        <p class="font-extrabold text-xs text-slate-800 leading-tight">{{ low_lap.brand }} {{ low_lap.name }}</p>
+                        <p class="text-[10px] text-rose-600 font-extrabold mt-0.5">{{ low_lap.quantity }} units remaining</p>
+                    </div>
+                </div>
+                <a href="{% url 'laptop_edit' low_lap.pk %}" class="h-7 w-7 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg flex items-center justify-center transition border border-rose-100" title="Quick Manage">
+                    <i class="fa-solid fa-truck-ramp-box text-xs"></i>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Filtering & Sorting Panel -->
+    <form method="GET" action="{% url 'laptop_manage' %}" class="p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm flex flex-wrap gap-4 items-end">
+        <!-- Search Term -->
+        <div class="flex-1 min-w-[200px] flex flex-col gap-1.5">
+            <label class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Search</label>
+            <input type="text" name="q" value="{{ current_q }}" placeholder="Search model, brand or cpu..." class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 focus:bg-white focus:outline-none font-semibold text-slate-800 transition">
+        </div>
+        <!-- Brand -->
+        <div class="w-full sm:w-36 flex flex-col gap-1.5">
+            <label class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Brand</label>
+            <select name="brand" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 focus:bg-white focus:outline-none font-semibold text-slate-800 transition">
+                <option value="">All Brands</option>
+                {% for b in brands %}
+                <option value="{{ b }}" {% if current_brand == b %}selected{% endif %}>{{ b }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <!-- OS -->
+        <div class="w-full sm:w-36 flex flex-col gap-1.5">
+            <label class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">OS</label>
+            <select name="os" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 focus:bg-white focus:outline-none font-semibold text-slate-800 transition">
+                <option value="">All OS</option>
+                {% for o in oses %}
+                <option value="{{ o }}" {% if current_os == o %}selected{% endif %}>{{ o }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <!-- RAM -->
+        <div class="w-full sm:w-36 flex flex-col gap-1.5">
+            <label class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">RAM</label>
+            <select name="ram" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 focus:bg-white focus:outline-none font-semibold text-slate-800 transition">
+                <option value="">All RAM</option>
+                {% for r in rams %}
+                <option value="{{ r }}" {% if current_ram == r %}selected{% endif %}>{{ r }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <!-- Storage -->
+        <div class="w-full sm:w-36 flex flex-col gap-1.5">
+            <label class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Storage</label>
+            <select name="storage" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 focus:bg-white focus:outline-none font-semibold text-slate-800 transition">
+                <option value="">All Storage</option>
+                {% for s in storages %}
+                <option value="{{ s }}" {% if current_storage == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <!-- Sort Operations -->
+        <div class="w-full sm:w-44 flex flex-col gap-1.5">
+            <label class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Sort By</label>
+            <select name="sort_by" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 focus:bg-white focus:outline-none font-semibold text-slate-800 transition">
+                <option value="name" {% if current_sort_by == 'name' %}selected{% endif %}>Name (A-Z)</option>
+                <option value="-name" {% if current_sort_by == '-name' %}selected{% endif %}>Name (Z-A)</option>
+                <option value="stock_asc" {% if current_sort_by == 'stock_asc' %}selected{% endif %}>Stock: Low to High</option>
+                <option value="stock_desc" {% if current_sort_by == 'stock_desc' %}selected{% endif %}>Stock: High to Low</option>
+                <option value="rating_desc" {% if current_sort_by == 'rating_desc' %}selected{% endif %}>Most Positive Reviews</option>
+                <option value="rating_asc" {% if current_sort_by == 'rating_asc' %}selected{% endif %}>Most Negative Reviews</option>
+                <option value="orders_desc" {% if current_sort_by == 'orders_desc' %}selected{% endif %}>Orders: High to Low</option>
+                <option value="orders_asc" {% if current_sort_by == 'orders_asc' %}selected{% endif %}>Orders: Low to High</option>
+            </select>
+        </div>
+        <!-- Submit Buttons -->
+        <div class="flex gap-2 w-full sm:w-auto">
+            <button type="submit" class="flex-1 sm:flex-none px-4 py-2 bg-slate-800 hover:bg-slate-950 text-white text-xs font-extrabold rounded-xl transition uppercase tracking-wider">
+                Apply
+            </button>
+            <a href="{% url 'laptop_manage' %}" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-extrabold rounded-xl transition uppercase tracking-wider flex items-center justify-center">
+                Clear
+            </a>
+        </div>
+    </form>
+
+    <!-- Laptop Ledger Table -->
     <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm overflow-hidden">
         <div class="overflow-x-auto -mx-6 -mb-6">
             <table class="w-full text-left text-sm text-slate-600 min-w-[800px]">
@@ -28,9 +132,10 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                    {% for laptop in laptops %}
-                    <tr class="hover:bg-slate-50/50 transition {% if selected_laptop.id == laptop.id %} bg-amber-500/5 {% endif %}">
-                        <!-- Profile Card -->
+                    {% for laptop in page_obj %}
+                    <!-- Interactive Row: Click anywhere on the row to view details & reviews -->
+                    <tr class="hover:bg-slate-50/50 transition cursor-pointer {% if selected_laptop.id == laptop.id %} bg-amber-500/5 {% endif %}" onclick="window.location.href='{% url 'laptop_edit' laptop.pk %}'">
+                        <!-- Profile Details -->
                         <td class="py-4 px-6">
                             <div class="flex items-center gap-4">
                                 {% if laptop.image %}
@@ -48,8 +153,8 @@
                                 </div>
                             </div>
                         </td>
-                        <!-- System Specs -->
-                        <td class="py-4 px-6 text-xs space-y-1">
+                        <!-- Specifications -->
+                        <td class="py-4 px-6 text-xs space-y-1" onclick="event.stopPropagation(); window.location.href='{% url 'laptop_edit' laptop.pk %}'">
                             <div class="flex items-center gap-1.5">
                                 <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-extrabold text-[9px] uppercase tracking-wider">CPU</span>
                                 <span class="font-bold text-slate-800">{{ laptop.cpu }}</span>
@@ -59,25 +164,25 @@
                                 <span class="font-semibold text-slate-500">{{ laptop.ram }} / {{ laptop.storage }}</span>
                             </div>
                         </td>
-                        <!-- Price & Stock -->
-                        <td class="py-4 px-6">
+                        <!-- Price & Inventory Count (Highlighting < 20 in red alert text) -->
+                        <td class="py-4 px-6" onclick="event.stopPropagation(); window.location.href='{% url 'laptop_edit' laptop.pk %}'">
                             <span class="block font-extrabold text-slate-900 text-sm tracking-tight">{{ laptop.price }} ETB</span>
                             <span class="inline-flex items-center mt-1 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider
-                                {% if laptop.quantity > 5 %} bg-emerald-50 text-emerald-700 border border-emerald-100
-                                {% elif laptop.quantity > 0 %} bg-amber-50 text-amber-700 border border-amber-100
-                                {% else %} bg-rose-50 text-rose-700 border border-rose-100 {% endif %}">
+                                {% if laptop.quantity >= 20 %} bg-emerald-50 text-emerald-700 border border-emerald-100
+                                {% elif laptop.quantity > 0 %} bg-rose-50 text-rose-700 border border-rose-100 animate-pulse
+                                {% else %} bg-rose-100 text-rose-800 border border-rose-200 {% endif %}">
                                 {{ laptop.quantity }} Units Available
                             </span>
                         </td>
                         <!-- Actions -->
-                        <td class="py-4 px-6 text-right">
+                        <td class="py-4 px-6 text-right" onclick="event.stopPropagation();">
                             <div class="inline-flex gap-2">
-                                <a href="{% url 'laptop_edit' laptop.pk %}" class="h-9 w-9 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 text-slate-600 hover:text-slate-900 flex items-center justify-center rounded-xl transition shadow-xs" title="Edit Properties">
+                                <a href="{% url 'laptop_edit' laptop.pk %}" class="h-9 w-9 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 text-slate-600 hover:text-slate-900 flex items-center justify-center rounded-xl transition shadow-xs" title="Edit Properties & Reviews">
                                     <i class="fa-solid fa-pen text-xs"></i>
                                 </a>
                                 <form method="POST" action="{% url 'laptop_edit' laptop.pk %}" onsubmit="return confirm('Are you sure you want to delete this laptop?');" class="inline">
                                     {% csrf_token %}
-                                    <button type="submit" name="delete_laptop" class="h-9 w-9 bg-rose-50 hover:bg-rose-100 border border-rose-100 text-rose-600 flex items-center justify-center rounded-xl transition shadow-xs" title="Delete Entry">
+                                    <button type="submit" name="delete_laptop" class="h-9 w-9 bg-rose-50 hover:bg-rose-100 border border-rose-100 text-rose-600 flex items-center justify-center rounded-xl transition shadow-xs" title="Delete Device">
                                         <i class="fa-solid fa-trash text-xs"></i>
                                     </button>
                                 </form>
@@ -87,7 +192,7 @@
                     {% empty %}
                     <tr>
                         <td colspan="4" class="py-12 text-center text-xs font-bold uppercase tracking-wider text-slate-400">
-                            No laptop inventory models configured yet.
+                            No laptop models match your specified filter options.
                         </td>
                     </tr>
                     {% endfor %}
@@ -95,25 +200,69 @@
             </table>
         </div>
     </div>
+
+    <!-- Pagination Navigator -->
+    {% if page_obj.has_other_pages %}
+    <div class="flex items-center justify-between border-t border-slate-200/60 bg-white px-4 py-3 sm:px-6 rounded-2xl shadow-sm">
+        <div class="flex flex-1 justify-between sm:hidden">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&brand={{ current_brand }}&os={{ current_os }}&storage={{ current_storage }}&ram={{ current_ram }}&sort_by={{ current_sort_by }}&q={{ current_q }}" class="relative inline-flex items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-extrabold text-slate-700 hover:bg-slate-50 uppercase tracking-wider">Previous</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&brand={{ current_brand }}&os={{ current_os }}&storage={{ current_storage }}&ram={{ current_ram }}&sort_by={{ current_sort_by }}&q={{ current_q }}" class="relative ml-3 inline-flex items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-extrabold text-slate-700 hover:bg-slate-50 uppercase tracking-wider">Next</a>
+            {% endif %}
+        </div>
+        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <div>
+                <p class="text-xs text-slate-500 font-semibold">
+                    Showing <span class="font-extrabold text-slate-900">{{ page_obj.start_index }}</span> to <span class="font-extrabold text-slate-900">{{ page_obj.end_index }}</span> of <span class="font-extrabold text-slate-900">{{ page_obj.paginator.count }}</span> systems
+                </p>
+            </div>
+            <div>
+                <nav class="isolate inline-flex -space-x-px rounded-xl border border-slate-200 shadow-xs" aria-label="Pagination">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}&brand={{ current_brand }}&os={{ current_os }}&storage={{ current_storage }}&ram={{ current_ram }}&sort_by={{ current_sort_by }}&q={{ current_q }}" class="relative inline-flex items-center rounded-l-xl px-3 py-2 text-slate-400 hover:bg-slate-50">
+                            <i class="fa-solid fa-chevron-left text-xs"></i>
+                        </a>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <span class="relative z-10 inline-flex items-center bg-amber-500 px-3.5 py-2 text-xs font-extrabold text-slate-950">{{ num }}</span>
+                        {% elif num > page_obj.number|add:-3 and num < page_obj.number|add:3 %}
+                            <a href="?page={{ num }}&brand={{ current_brand }}&os={{ current_os }}&storage={{ current_storage }}&ram={{ current_ram }}&sort_by={{ current_sort_by }}&q={{ current_q }}" class="relative inline-flex items-center px-3.5 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-50">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}&brand={{ current_brand }}&os={{ current_os }}&storage={{ current_storage }}&ram={{ current_ram }}&sort_by={{ current_sort_by }}&q={{ current_q }}" class="relative inline-flex items-center rounded-r-xl px-3 py-2 text-slate-400 hover:bg-slate-50">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </a>
+                    {% endif %}
+                </nav>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
-<!-- Modal Dialog Overlay for Forms (Create / Edit Hover-on-top Dialog) -->
+<!-- Modal Grid Dialog -->
 <div id="laptopModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 {% if not selected_laptop and not form.errors %}hidden{% endif %}">
     
     <!-- Modal Backdrop -->
     <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity" onclick="closeModal()"></div>
     
-    <!-- Modal Card Container -->
-    <div class="relative bg-white rounded-2xl shadow-2xl border border-slate-200/80 max-w-lg w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+    <!-- Flexible Split Workspace Container -->
+    <div class="relative bg-white rounded-2xl shadow-2xl border border-slate-200/80 transition-all flex flex-col max-h-[90vh] w-full {% if selected_laptop %}max-w-5xl{% else %}max-w-xl{% endif %}">
         
-        <!-- Modal Form Header -->
+        <!-- Header -->
         <div class="p-6 border-b border-slate-200/80 flex items-center justify-between bg-slate-50/50">
             <div>
                 <h3 class="text-base font-extrabold text-slate-900 tracking-tight">
-                    {% if selected_laptop %}Update Device Details{% else %}Register Hardware Profile{% endif %}
+                    {% if selected_laptop %}Configure Device Profile & Review Control Panel{% else %}Register Hardware Profile{% endif %}
                 </h3>
                 <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mt-0.5">
-                    {% if selected_laptop %}Altering SKU ID: {{ selected_laptop.id }}{% else %}Add a unique product line card to inventory{% endif %}
+                    {% if selected_laptop %}Device: {{ selected_laptop.brand }} {{ selected_laptop.name }} (ID: {{ selected_laptop.id }}){% else %}Add a unique product line card to inventory{% endif %}
                 </p>
             </div>
             <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 transition p-1.5 rounded-lg hover:bg-slate-100">
@@ -121,58 +270,114 @@
             </button>
         </div>
 
-        <!-- Form Submission Area -->
-        <form method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 overflow-hidden">
-            {% csrf_token %}
+        <!-- Split Grid (Form Workspace Left, Review Board Right) -->
+        <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
             
-            <div class="p-6 space-y-4 overflow-y-auto flex-1">
-                {% for field in form %}
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">{{ field.label }}</label>
-                    
-                    {% if field.field.widget.input_type == 'file' %}
-                        <div class="relative flex items-center justify-center p-3 border-2 border-dashed border-slate-200 rounded-xl hover:border-amber-500 hover:bg-slate-50 transition cursor-pointer group">
-                            {{ field }}
-                        </div>
-                    {% elif field.field.widget.input_type == 'checkbox' %}
-                        <div class="flex items-center gap-2.5 mt-1">
-                            {{ field }}
-                            <span class="text-xs font-bold text-slate-600">{{ field.help_text|default:"" }}</span>
-                        </div>
-                    {% else %}
-                        <div class="w-full">
-                            {{ field }}
-                        </div>
-                    {% endif %}
-                    
-                    {% if field.errors %}
-                        <span class="text-[10px] font-bold text-rose-500 mt-1 flex items-center gap-1">
-                            <i class="fa-solid fa-triangle-exclamation text-[9px]"></i>
-                            {{ field.errors.as_text }}
-                        </span>
-                    {% endif %}
+            <!-- Laptop Properties Form -->
+            <form method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 overflow-hidden border-b md:border-b-0">
+                {% csrf_token %}
+                <div class="p-6 space-y-4 overflow-y-auto flex-1">
+                    {% for field in form %}
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">{{ field.label }}</label>
+                        
+                        {% if field.field.widget.input_type == 'file' %}
+                            <div class="relative flex items-center justify-center p-3 border-2 border-dashed border-slate-200 rounded-xl hover:border-amber-500 hover:bg-slate-50 transition cursor-pointer group">
+                                {{ field }}
+                            </div>
+                        {% elif field.field.widget.input_type == 'checkbox' %}
+                            <div class="flex items-center gap-2.5 mt-1">
+                                {{ field }}
+                                <span class="text-xs font-bold text-slate-600">{{ field.help_text|default:"" }}</span>
+                            </div>
+                        {% else %}
+                            <div class="w-full">
+                                {{ field }}
+                            </div>
+                        {% endif %}
+                        
+                        {% if field.errors %}
+                            <span class="text-[10px] font-bold text-rose-500 mt-1 flex items-center gap-1">
+                                <i class="fa-solid fa-triangle-exclamation text-[9px]"></i>
+                                {{ field.errors.as_text }}
+                            </span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
 
-            <!-- Footer Action Panel -->
-            <div class="p-6 border-t border-slate-200/80 bg-slate-50/50 flex gap-3">
-                <button type="submit" name="save_laptop" class="flex-1 py-3 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-extrabold rounded-xl shadow-md shadow-amber-500/15 transition uppercase tracking-wider">
-                    {% if selected_laptop %}Commit Updates{% else %}Complete Registration{% endif %}
-                </button>
-                <button type="button" onclick="closeModal()" class="py-3 px-4 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold rounded-xl transition uppercase tracking-wider">
-                    Cancel
-                </button>
+                <!-- Form Footer Actions -->
+                <div class="p-6 border-t border-slate-200/80 bg-slate-50/50 flex gap-3">
+                    <button type="submit" name="save_laptop" class="flex-1 py-3 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-extrabold rounded-xl shadow-md shadow-amber-500/15 transition uppercase tracking-wider">
+                        {% if selected_laptop %}Commit Updates{% else %}Complete Registration{% endif %}
+                    </button>
+                    <button type="button" onclick="closeModal()" class="py-3 px-4 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold rounded-xl transition uppercase tracking-wider">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+
+            <!-- Product Reviews Workspace Pane (Only Visible When Laptop Selected) -->
+            {% if selected_laptop %}
+            <div class="w-full md:w-[450px] border-t md:border-t-0 md:border-l border-slate-200/80 bg-slate-50/30 flex flex-col max-h-full overflow-hidden">
+                <div class="p-4 border-b border-slate-200/80 bg-slate-50/50 flex items-center justify-between">
+                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Reviews History ({{ selected_reviews|length }})</span>
+                    <span class="inline-flex items-center text-[10px] text-amber-500 font-extrabold uppercase bg-amber-50 px-2 py-0.5 rounded-md border border-amber-100">
+                        Avg: {{ selected_laptop.average_rating|default:"0.0" }} ★
+                    </span>
+                </div>
+                
+                <div class="p-4 overflow-y-auto space-y-4 flex-1">
+                    {% for r in selected_reviews %}
+                    <div class="p-4 bg-white border border-slate-200 rounded-xl space-y-3 shadow-xs relative" id="review-card-{{ r.id }}">
+                        
+                        <div class="flex justify-between items-start gap-2">
+                            <div>
+                                <h4 class="text-xs font-extrabold text-slate-900 tracking-tight">{{ r.customer }}</h4>
+                                <div class="flex items-center gap-1 text-[9px] font-bold text-amber-500 mt-0.5">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= r.rating %}
+                                            <i class="fa-solid fa-star"></i>
+                                        {% else %}
+                                            <i class="fa-regular fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <!-- Review Operations (Delete Only) -->
+                            <div class="flex gap-1">
+                                <!-- Submit Review Delete Action -->
+                                <form method="POST" action="{% url 'laptop_edit' selected_laptop.pk %}" onsubmit="return confirm('Permanently remove this review?');" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="review_id" value="{{ r.id }}">
+                                    <button type="submit" name="delete_review" class="h-7 w-7 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-100 text-rose-600 flex items-center justify-center transition" title="Delete Comment">
+                                        <i class="fa-solid fa-trash-can text-xs"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Read Review Text -->
+                        <p id="review-text-{{ r.id }}" class="text-xs text-slate-600 leading-relaxed font-medium">{{ r.text }}</p>
+                    </div>
+                    {% empty %}
+                    <div class="py-12 text-center">
+                        <i class="fa-solid fa-comments-slash text-slate-300 text-2xl mb-2"></i>
+                        <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">No product reviews exist yet.</p>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
-        </form>
+            {% endif %}
+        </div>
     </div>
 </div>
 
 <script>
-    // Modal Visiblity Control handlers
+    // Modal visibility switches
     function closeModal() {
         {% if selected_laptop %}
-            // If editing, exit modal via redirecting to baseline ledger route
+            // If viewing active edit workspace, exit by redirecting to baseline page route
             window.location.href = "{% url 'laptop_manage' %}";
         {% else %}
             document.getElementById('laptopModal').classList.add('hidden');
@@ -183,9 +388,9 @@
         document.getElementById('laptopModal').classList.remove('hidden');
     }
 
-    // Modern styling injector for auto-rendered forms
+    // Inject Form Styling Elements dynamically 
     document.addEventListener("DOMContentLoaded", function() {
-        const formFields = document.querySelectorAll('#laptopModal form input:not([type="checkbox"]):not([type="file"]), #laptopModal form select, #laptopModal form textarea');
+        const formFields = document.querySelectorAll('#laptopModal form input:not([type="checkbox"]):not([type="file"]):not([type="hidden"]), #laptopModal form select, #laptopModal form textarea');
         formFields.forEach(field => {
             field.classList.add(
                 'w-full', 'px-4', 'py-2.5', 'text-sm', 'bg-slate-50', 'border', 'border-slate-200', 

@@ -3,6 +3,7 @@
 {% block dashboard_content %}
 <div class="space-y-6">
     
+    <!-- Top Action Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 bg-white border border-slate-200/80 rounded-2xl shadow-sm relative overflow-hidden">
         <div class="absolute inset-x-6 top-0 h-12 bg-amber-400/5 blur-xl pointer-events-none"></div>
         <div class="relative z-10">
@@ -10,14 +11,52 @@
             <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mt-0.5">Manage system access credentials and associated customer profiles.</p>
         </div>
         <div class="relative z-10 sm:text-right">
-            <a href="{% url 'user_manage' %}" class="inline-flex py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-extrabold rounded-xl shadow-md shadow-amber-500/15 transition uppercase tracking-wider items-center gap-2">
+            <!-- Appending ?add=1 triggers the Modal to display from hidden state -->
+            <a href="{% url 'user_manage' %}?add=1" class="inline-flex py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-extrabold rounded-xl shadow-md shadow-amber-500/15 transition uppercase tracking-wider items-center gap-2">
                 <i class="fa-solid fa-plus text-xs"></i> Add New User
             </a>
         </div>
     </div>
 
-    <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm overflow-hidden">
-        <div class="overflow-x-auto -mx-6 -mb-6">
+    <!-- Search, Filter, and Sort Controls Toolbar -->
+    <form method="GET" action="{% url 'user_manage' %}" class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-4 border border-slate-200/80 rounded-2xl shadow-sm">
+        <!-- Live Text Query Search -->
+        <div class="relative md:col-span-2">
+            <input type="text" name="search" value="{{ search_query }}" placeholder="Search by username, email, name, or phone..." class="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 focus:bg-white transition-all font-semibold text-slate-800">
+            <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+            </div>
+        </div>
+        
+        <!-- Account Type Filter Dropdown -->
+        <div>
+            <select name="account_type" class="w-full px-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 focus:bg-white transition-all font-semibold text-slate-800">
+                <option value="all" {% if current_filter == 'all' %}selected{% endif %}>All Account Types</option>
+                <option value="customer" {% if current_filter == 'customer' %}selected{% endif %}>Customers Only</option>
+                <option value="staff" {% if current_filter == 'staff' %}selected{% endif %}>Staff Only</option>
+                {% if request.user.is_superuser %}
+                <option value="superuser" {% if current_filter == 'superuser' %}selected{% endif %}>Superusers Only</option>
+                {% endif %}
+            </select>
+        </div>
+        
+        <!-- Sorting and Submission -->
+        <div class="flex gap-2">
+            <select name="sort" class="w-full px-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 focus:bg-white transition-all font-semibold text-slate-800">
+                <option value="username_asc" {% if current_sort == 'username_asc' %}selected{% endif %}>Username (A-Z)</option>
+                <option value="username_desc" {% if current_sort == 'username_desc' %}selected{% endif %}>Username (Z-A)</option>
+                <option value="date_desc" {% if current_sort == 'date_desc' %}selected{% endif %}>Date Created (Newest)</option>
+                <option value="date_asc" {% if current_sort == 'date_asc' %}selected{% endif %}>Date Created (Oldest)</option>
+            </select>
+            <button type="submit" class="py-2.5 px-4 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
+                Apply
+            </button>
+        </div>
+    </form>
+
+    <!-- Data Display Table -->
+    <div class="rounded-2xl border border-slate-200/80 bg-white shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
             <table class="w-full text-left text-sm text-slate-600 min-w-[950px]">
                 <thead>
                     <tr class="bg-slate-50 border-b border-slate-200/80 text-slate-500 uppercase font-extrabold text-[10px] tracking-wider">
@@ -34,9 +73,18 @@
                     <tr class="hover:bg-slate-50/50 transition {% if selected_user.id == u.id %} bg-amber-500/5 {% endif %}">
                         <td class="py-4 px-6">
                             <div class="space-y-1">
-                                <span class="block font-mono text-xs text-slate-900 font-extrabold tracking-tight">
-                                    {{ u.username }}
-                                </span>
+                                <div class="flex items-center gap-2">
+                                    <span class="block font-mono text-xs text-slate-900 font-extrabold tracking-tight">
+                                        {{ u.username }}
+                                    </span>
+                                    {% if u.is_superuser %}
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-100 text-[8px] font-extrabold uppercase tracking-wide">Superuser</span>
+                                    {% elif u.is_staff %}
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100 text-[8px] font-extrabold uppercase tracking-wide">Staff</span>
+                                    {% else %}
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 text-[8px] font-extrabold uppercase tracking-wide">Customer</span>
+                                    {% endif %}
+                                </div>
                                 <div class="flex items-center gap-1.5 text-[11px] text-slate-500 font-semibold">
                                     <i class="fa-regular fa-envelope text-slate-400"></i>
                                     <span>{{ u.email }}</span>
@@ -83,7 +131,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="py-12 text-center text-xs font-bold uppercase tracking-wider text-slate-400">
+                        <td colspan="6" class="py-12 text-center text-xs font-bold uppercase tracking-wider text-slate-400 bg-white">
                             No registered users discovered.
                         </td>
                     </tr>
@@ -91,10 +139,53 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Custom Pagination Block -->
+        {% if page_obj.has_other_pages %}
+        <div class="p-6 border-t border-slate-200/80 bg-slate-50/55 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="text-xs text-slate-500 font-bold">
+                Showing <span class="text-slate-800">{{ page_obj.start_index }}</span> to <span class="text-slate-800">{{ page_obj.end_index }}</span> of <span class="text-slate-800">{{ page_obj.paginator.count }}</span> users
+            </div>
+            <div class="inline-flex items-center gap-1.5">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_filter %}&account_type={{ current_filter }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}" class="h-8 w-8 flex items-center justify-center bg-white border border-slate-200 rounded-lg text-slate-500 hover:text-slate-800 hover:border-slate-300 transition text-xs shadow-xs">
+                        <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                    </a>
+                {% else %}
+                    <span class="h-8 w-8 flex items-center justify-center bg-slate-100 border border-slate-200 rounded-lg text-slate-300 text-xs cursor-not-allowed">
+                        <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                    </span>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <span class="h-8 px-3 flex items-center justify-center bg-amber-500 text-slate-950 font-extrabold rounded-lg text-xs shadow-xs">
+                            {{ num }}
+                        </span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_filter %}&account_type={{ current_filter }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}" class="h-8 px-3 flex items-center justify-center bg-white border border-slate-200 hover:border-slate-300 text-slate-600 hover:text-slate-900 rounded-lg text-xs font-bold transition shadow-xs">
+                            {{ num }}
+                        </a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_filter %}&account_type={{ current_filter }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}" class="h-8 w-8 flex items-center justify-center bg-white border border-slate-200 rounded-lg text-slate-500 hover:text-slate-800 hover:border-slate-300 transition text-xs shadow-xs">
+                        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </a>
+                {% else %}
+                    <span class="h-8 w-8 flex items-center justify-center bg-slate-100 border border-slate-200 rounded-lg text-slate-300 text-xs cursor-not-allowed">
+                        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 
-<div id="userModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 {% if not selected_user and not user_form.errors and not customer_form.errors %}hidden{% endif %}">
+<!-- Modal Control Drawer (Shows if adding, editing, or if there are form errors) -->
+<div id="userModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 {% if not selected_user and not user_form.errors and not customer_form.errors and not request.GET.add %}hidden{% endif %}">
     
     <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity" onclick="closeModal()"></div>
     
@@ -120,11 +211,11 @@
             <div class="p-6 space-y-5 overflow-y-auto flex-1">
                 
                 <div>
-                    <h4 class="text-[10px] font-extrabold uppercase tracking-wider text-amber-600 mb-3 border-b border-slate-100 pb-1">Core Authentication</h4>
+                    <h4 class="text-[10px] font-extrabold uppercase tracking-wider text-amber-600 mb-3 border-b border-slate-100 pb-1">Core Authentication & Access</h4>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {% for field in user_form %}
                             {% if field.name != 'password' or not selected_user %}
-                            <div class="flex flex-col gap-1.5 {% if field.name == 'password' or field.name == 'email' %}sm:col-span-2{% endif %}">
+                            <div class="flex flex-col gap-1.5 {% if field.name == 'password' %}sm:col-span-2{% endif %}">
                                 <label class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">{{ field.label }}</label>
                                 <div class="w-full dynamic-field-wrapper">
                                     {{ field }}
@@ -138,6 +229,20 @@
                             </div>
                             {% endif %}
                         {% endfor %}
+
+                        <!-- Dynamic Account Type Configuration Option -->
+                        <div class="flex flex-col gap-1.5 sm:col-span-2">
+                            <label class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Account Type (Authority Flag)</label>
+                            <div class="w-full dynamic-field-wrapper">
+                                <select name="account_type" class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 focus:bg-white transition-all font-semibold text-slate-800">
+                                    <option value="customer" {% if selected_account_type == 'customer' %}selected{% endif %}>Customer (Regular User)</option>
+                                    <option value="staff" {% if selected_account_type == 'staff' %}selected{% endif %}>Staff (Dashboard Access)</option>
+                                    {% if request.user.is_superuser %}
+                                    <option value="superuser" {% if selected_account_type == 'superuser' %}selected{% endif %}>Superuser (Full Database Administrator)</option>
+                                    {% endif %}
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -178,13 +283,13 @@
 <script>
     // Modal Visibility Control handler
     function closeModal() {
-        // Redirect back to baseline route
+        // Redirect back to baseline route to clear parameters
         window.location.href = "{% url 'user_manage' %}";
     }
 
-    // Modern styling injector for dynamically-rendered form elements (Inputs, Password, Selects)
+    // Inject Tailwind Styling Dynamically
     document.addEventListener("DOMContentLoaded", function() {
-        const textInputs = document.querySelectorAll('.dynamic-field-wrapper input, .dynamic-field-wrapper select');
+        const textInputs = document.querySelectorAll('.dynamic-field-wrapper input, .dynamic-field-wrapper select, .dynamic-field-wrapper textarea');
         textInputs.forEach(field => {
             field.classList.add(
                 'w-full', 'px-4', 'py-2.5', 'text-sm', 'bg-slate-50', 'border', 'border-slate-200', 
