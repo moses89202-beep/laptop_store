@@ -1,0 +1,212 @@
+{% extends 'base_dashboard.html' %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+    
+    <!-- Top Action & Header Card -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 bg-white border border-slate-200/80 rounded-2xl shadow-sm relative overflow-hidden">
+        <div class="absolute inset-x-6 top-0 h-12 bg-amber-400/5 blur-xl pointer-events-none"></div>
+        <div class="relative z-10">
+            <h1 class="text-base font-extrabold text-slate-900 tracking-tight">Laptops Fleet Inventory</h1>
+            <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mt-0.5">View, modify, or add system hardware entries.</p>
+        </div>
+        <button onclick="openModal()" class="sm:self-center relative z-10 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-extrabold rounded-xl flex items-center justify-center gap-2 shadow-sm shadow-amber-500/20 transition-all uppercase tracking-wider">
+            <i class="fa-solid fa-plus text-xs"></i> Register Laptop
+        </button>
+    </div>
+
+    <!-- Inventory Ledger Table Card -->
+    <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto -mx-6 -mb-6">
+            <table class="w-full text-left text-sm text-slate-600 min-w-[800px]">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200/80 text-slate-500 uppercase font-extrabold text-[10px] tracking-wider">
+                        <th class="py-4 px-6">Device Profile</th>
+                        <th class="py-4 px-6">System Specifications</th>
+                        <th class="py-4 px-6">Price & Availability</th>
+                        <th class="py-4 px-6 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for laptop in laptops %}
+                    <tr class="hover:bg-slate-50/50 transition {% if selected_laptop.id == laptop.id %} bg-amber-500/5 {% endif %}">
+                        <!-- Profile Card -->
+                        <td class="py-4 px-6">
+                            <div class="flex items-center gap-4">
+                                {% if laptop.image %}
+                                    <img src="{{ laptop.image.url }}" alt="{{ laptop.name }}" class="w-12 h-12 object-cover rounded-xl border border-slate-200/60 shadow-xs shrink-0">
+                                {% else %}
+                                    <div class="w-12 h-12 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 shadow-xs shrink-0">
+                                        <i class="fa-solid fa-laptop text-sm"></i>
+                                    </div>
+                                {% endif %}
+                                <div class="space-y-0.5">
+                                    <span class="block font-extrabold text-slate-900 tracking-tight text-sm">{{ laptop.brand }} {{ laptop.name }}</span>
+                                    <span class="inline-flex items-center text-[10px] text-amber-500 font-extrabold tracking-wider uppercase">
+                                        <i class="fa-solid fa-star mr-1 text-[9px]"></i> {{ laptop.average_rating|default:"0.0" }} Rating
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+                        <!-- System Specs -->
+                        <td class="py-4 px-6 text-xs space-y-1">
+                            <div class="flex items-center gap-1.5">
+                                <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-extrabold text-[9px] uppercase tracking-wider">CPU</span>
+                                <span class="font-bold text-slate-800">{{ laptop.cpu }}</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-extrabold text-[9px] uppercase tracking-wider">Specs</span>
+                                <span class="font-semibold text-slate-500">{{ laptop.ram }} / {{ laptop.storage }}</span>
+                            </div>
+                        </td>
+                        <!-- Price & Stock -->
+                        <td class="py-4 px-6">
+                            <span class="block font-extrabold text-slate-900 text-sm tracking-tight">{{ laptop.price }} ETB</span>
+                            <span class="inline-flex items-center mt-1 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider
+                                {% if laptop.quantity > 5 %} bg-emerald-50 text-emerald-700 border border-emerald-100
+                                {% elif laptop.quantity > 0 %} bg-amber-50 text-amber-700 border border-amber-100
+                                {% else %} bg-rose-50 text-rose-700 border border-rose-100 {% endif %}">
+                                {{ laptop.quantity }} Units Available
+                            </span>
+                        </td>
+                        <!-- Actions -->
+                        <td class="py-4 px-6 text-right">
+                            <div class="inline-flex gap-2">
+                                <a href="{% url 'laptop_edit' laptop.pk %}" class="h-9 w-9 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 text-slate-600 hover:text-slate-900 flex items-center justify-center rounded-xl transition shadow-xs" title="Edit Properties">
+                                    <i class="fa-solid fa-pen text-xs"></i>
+                                </a>
+                                <form method="POST" action="{% url 'laptop_edit' laptop.pk %}" onsubmit="return confirm('Are you sure you want to delete this laptop?');" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" name="delete_laptop" class="h-9 w-9 bg-rose-50 hover:bg-rose-100 border border-rose-100 text-rose-600 flex items-center justify-center rounded-xl transition shadow-xs" title="Delete Entry">
+                                        <i class="fa-solid fa-trash text-xs"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="py-12 text-center text-xs font-bold uppercase tracking-wider text-slate-400">
+                            No laptop inventory models configured yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Dialog Overlay for Forms (Create / Edit Hover-on-top Dialog) -->
+<div id="laptopModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 {% if not selected_laptop and not form.errors %}hidden{% endif %}">
+    
+    <!-- Modal Backdrop -->
+    <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity" onclick="closeModal()"></div>
+    
+    <!-- Modal Card Container -->
+    <div class="relative bg-white rounded-2xl shadow-2xl border border-slate-200/80 max-w-lg w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+        
+        <!-- Modal Form Header -->
+        <div class="p-6 border-b border-slate-200/80 flex items-center justify-between bg-slate-50/50">
+            <div>
+                <h3 class="text-base font-extrabold text-slate-900 tracking-tight">
+                    {% if selected_laptop %}Update Device Details{% else %}Register Hardware Profile{% endif %}
+                </h3>
+                <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mt-0.5">
+                    {% if selected_laptop %}Altering SKU ID: {{ selected_laptop.id }}{% else %}Add a unique product line card to inventory{% endif %}
+                </p>
+            </div>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 transition p-1.5 rounded-lg hover:bg-slate-100">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+        </div>
+
+        <!-- Form Submission Area -->
+        <form method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 overflow-hidden">
+            {% csrf_token %}
+            
+            <div class="p-6 space-y-4 overflow-y-auto flex-1">
+                {% for field in form %}
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">{{ field.label }}</label>
+                    
+                    {% if field.field.widget.input_type == 'file' %}
+                        <div class="relative flex items-center justify-center p-3 border-2 border-dashed border-slate-200 rounded-xl hover:border-amber-500 hover:bg-slate-50 transition cursor-pointer group">
+                            {{ field }}
+                        </div>
+                    {% elif field.field.widget.input_type == 'checkbox' %}
+                        <div class="flex items-center gap-2.5 mt-1">
+                            {{ field }}
+                            <span class="text-xs font-bold text-slate-600">{{ field.help_text|default:"" }}</span>
+                        </div>
+                    {% else %}
+                        <div class="w-full">
+                            {{ field }}
+                        </div>
+                    {% endif %}
+                    
+                    {% if field.errors %}
+                        <span class="text-[10px] font-bold text-rose-500 mt-1 flex items-center gap-1">
+                            <i class="fa-solid fa-triangle-exclamation text-[9px]"></i>
+                            {{ field.errors.as_text }}
+                        </span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Footer Action Panel -->
+            <div class="p-6 border-t border-slate-200/80 bg-slate-50/50 flex gap-3">
+                <button type="submit" name="save_laptop" class="flex-1 py-3 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-extrabold rounded-xl shadow-md shadow-amber-500/15 transition uppercase tracking-wider">
+                    {% if selected_laptop %}Commit Updates{% else %}Complete Registration{% endif %}
+                </button>
+                <button type="button" onclick="closeModal()" class="py-3 px-4 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold rounded-xl transition uppercase tracking-wider">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Modal Visiblity Control handlers
+    function closeModal() {
+        {% if selected_laptop %}
+            // If editing, exit modal via redirecting to baseline ledger route
+            window.location.href = "{% url 'laptop_manage' %}";
+        {% else %}
+            document.getElementById('laptopModal').classList.add('hidden');
+        {% endif %}
+    }
+
+    function openModal() {
+        document.getElementById('laptopModal').classList.remove('hidden');
+    }
+
+    // Modern styling injector for auto-rendered forms
+    document.addEventListener("DOMContentLoaded", function() {
+        const formFields = document.querySelectorAll('#laptopModal form input:not([type="checkbox"]):not([type="file"]), #laptopModal form select, #laptopModal form textarea');
+        formFields.forEach(field => {
+            field.classList.add(
+                'w-full', 'px-4', 'py-2.5', 'text-sm', 'bg-slate-50', 'border', 'border-slate-200', 
+                'rounded-xl', 'focus:outline-none', 'focus:border-amber-500', 'focus:bg-white', 
+                'transition-all', 'font-semibold', 'text-slate-800'
+            );
+        });
+
+        const checkboxes = document.querySelectorAll('#laptopModal form input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+            cb.classList.add('h-4', 'w-4', 'rounded-md', 'border-slate-300', 'text-amber-500', 'focus:ring-amber-500');
+        });
+
+        const files = document.querySelectorAll('#laptopModal form input[type="file"]');
+        files.forEach(f => {
+            f.classList.add(
+                'text-xs', 'text-slate-500', 'file:mr-4', 'file:py-1.5', 'file:px-3', 'file:rounded-lg', 
+                'file:border-0', 'file:text-xs', 'file:font-bold', 'file:bg-amber-500', 'file:text-slate-950', 
+                'hover:file:bg-amber-600', 'file:cursor-pointer', 'cursor-pointer'
+            );
+        });
+    });
+</script>
+{% endblock dashboard_content %}

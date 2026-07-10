@@ -57,12 +57,27 @@
                 </div>
             </div>
             {% csrf_token %}
-            <button id="checkout-btn" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 py-3 text-xs font-bold text-slate-950 shadow-sm transition-all hover:bg-amber-400 hover:shadow-md hover:shadow-amber-500/15 disabled:opacity-40 disabled:pointer-events-none active:scale-[0.98]" disabled>
-                <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-3-12.75h3.75c.621 0 1.125.504 1.125 1.125V18a1.125 1.125 0 01-1.125 1.125H5.625A1.125 1.125 0 014.5 18V6.75c0-.621.504-1.125 1.125-1.125h12.75c.621 0 1.125.504 1.125 1.125v1.125" />
-                </svg>
-                <span id="checkout-text">Proceed to Secure Checkout</span>
-            </button>
+            
+            {% if user.is_authenticated %}
+                <button id="checkout-btn" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 py-3 text-xs font-bold text-slate-950 shadow-sm transition-all hover:bg-amber-400 hover:shadow-md hover:shadow-amber-500/15 disabled:opacity-40 disabled:pointer-events-none active:scale-[0.98]" disabled>
+                    <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-3-12.75h3.75c.621 0 1.125.504 1.125 1.125V18a1.125 1.125 0 01-1.125 1.125H5.625A1.125 1.125 0 014.5 18V6.75c0-.621.504-1.125 1.125-1.125h12.75c.621 0 1.125.504 1.125 1.125v1.125" />
+                    </svg>
+                    <span>Checkout with Chapa</span>
+                </button>
+            {% else %}
+                <div class="space-y-3">
+                    <div class="rounded-xl bg-slate-50 border border-slate-200 p-3 text-center">
+                        <p class="text-xs font-medium text-slate-600">Please authenticate to finalize your order hardware configurations.</p>
+                    </div>
+                    <button id="checkout-btn" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-200 py-3 text-xs font-bold text-slate-400 cursor-not-allowed" disabled>
+                        <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-3-12.75h3.75c.621 0 1.125.504 1.125 1.125V18a1.125 1.125 0 01-1.125 1.125H5.625A1.125 1.125 0 014.5 18V6.75c0-.621.504-1.125 1.125-1.125h12.75c.621 0 1.125.504 1.125 1.125v1.125" />
+                        </svg>
+                        <span>Checkout with Chapa</span>
+                    </button>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -74,10 +89,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const summarySubtotal = document.getElementById('summary-subtotal');
     const summaryTotal = document.getElementById('summary-total');
     const checkoutBtn = document.getElementById('checkout-btn');
-    const checkoutText = document.getElementById('checkout-text');
     const toggleRadios = document.querySelectorAll('input[name="delivery_method_toggle"]');
     const labelDelivery = document.getElementById('label-delivery');
     const labelPickup = document.getElementById('label-pickup');
+
+    const isUserAuthenticated = {% if user.is_authenticated %}true{% else %}false{% endif %};
 
     let rawCart = JSON.parse(localStorage.getItem('zemen_cart')) || [];
     let cartQuantityMap = buildCartQuantityMap(rawCart);
@@ -184,16 +200,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const decreaseDisabled = requestedQty <= 1 ? 'disabled' : '';
             const increaseDisabled = requestedQty >= availableQty ? 'disabled' : '';
 
+            const detailUrl = `/laptop/${item.id}/`;
+
             const fallbackImg = `
-                <div class="bg-slate-50 border border-slate-200/60 rounded-xl flex items-center justify-center w-full h-full text-slate-300">
+                <a href="${detailUrl}" class="bg-slate-50 border border-slate-200/60 rounded-xl flex items-center justify-center w-full h-full text-slate-300 transition hover:opacity-90">
                     <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke-width="1.25" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                     </svg>
-                </div>
+                </a>
             `;
 
             const productImg = item.image_url ? `
-                <img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}" class="max-w-full max-h-full object-contain rounded-xl border border-slate-200/60 p-2 bg-white">
+                <a href="${detailUrl}" class="flex items-center justify-center w-full h-full transition hover:opacity-90">
+                    <img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}" class="max-w-full max-h-full object-contain rounded-xl border border-slate-200/60 p-2 bg-white">
+                </a>
             ` : fallbackImg;
 
             const layoutRow = document.createElement('div');
@@ -207,7 +227,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="flex-grow text-center md:text-left min-w-0">
                         <span class="text-amber-500 text-[10px] font-extrabold tracking-wider uppercase block mb-0.5">${escapeHtml(item.brand)}</span>
-                        <h3 class="font-bold text-slate-900 text-sm md:text-base mb-3 truncate" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</h3>
+                        <h3 class="font-bold text-slate-900 text-sm md:text-base mb-3 truncate hover:text-amber-500 transition-colors" title="${escapeHtml(item.name)}">
+                            <a href="${detailUrl}">${escapeHtml(item.name)}</a>
+                        </h3>
                         <div class="flex flex-wrap justify-center md:justify-start gap-1.5 mb-3">
                             <span class="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 border border-slate-100 px-2 py-1 text-[11px] font-medium text-slate-500">${escapeHtml(item.processor || 'Processor')}</span>
                             <span class="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 border border-slate-100 px-2 py-1 text-[11px] font-medium text-slate-500">${escapeHtml(item.ram || 'RAM')}</span>
@@ -247,8 +269,12 @@ document.addEventListener('DOMContentLoaded', () => {
         summarySubtotal.textContent = totalSum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         summaryTotal.textContent = totalSum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-        checkoutBtn.disabled = !validation.valid;
-        if (!validation.valid) showTopWarning(validation.message);
+        if (isUserAuthenticated) {
+            checkoutBtn.disabled = !validation.valid;
+            if (!validation.valid) showTopWarning(validation.message);
+        } else {
+            checkoutBtn.disabled = true;
+        }
 
         setupQuantityButtons();
         setupRemovalTriggers();
@@ -334,53 +360,53 @@ document.addEventListener('DOMContentLoaded', () => {
         return { valid: true, message: '' };
     }
 
-    checkoutBtn.addEventListener('click', () => {
-        const validation = validateCartStock();
-        if (!validation.valid) {
-            showTopWarning(validation.message);
-            checkoutBtn.disabled = true;
-            return;
-        }
-
-        checkoutBtn.disabled = true;
-        checkoutText.textContent = "Processing order...";
-
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        const checkoutItems = currentItems.map(item => ({
-            id: item.id,
-            quantity: parseInt(item.requested_quantity) || 1
-        }));
-
-        const activeFulfillmentChoice = document.querySelector('input[name="delivery_method_toggle"]:checked').value;
-
-        fetch('{% url "initialize_payment" %}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({
-                cart_items: checkoutItems,
-                delivery_method: activeFulfillmentChoice
-            })
-        })
-        .then(res => res.json().then(data => ({ ok: res.ok, data })))
-        .then(({ ok, data }) => {
-            if (!ok) throw new Error(data.error || 'Failed to initialize payment.');
-            if (data.checkout_url) {
-                localStorage.removeItem('zemen_cart');
-                window.location.href = data.checkout_url;
-            } else {
-                throw new Error(data.error || 'Failed to initialize payment runtime.');
+    if (isUserAuthenticated) {
+        checkoutBtn.addEventListener('click', () => {
+            const validation = validateCartStock();
+            if (!validation.valid) {
+                showTopWarning(validation.message);
+                checkoutBtn.disabled = true;
+                return;
             }
-        })
-        .catch(err => {
-            console.error("Checkout Exception:", err);
-            checkoutBtn.disabled = false;
-            checkoutText.textContent = "Proceed to Secure Checkout";
-            showTopWarning(`Checkout Failed: ${err.message}`);
+
+            checkoutBtn.disabled = true;
+
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const checkoutItems = currentItems.map(item => ({
+                id: item.id,
+                quantity: parseInt(item.requested_quantity) || 1
+            }));
+
+            const activeFulfillmentChoice = document.querySelector('input[name="delivery_method_toggle"]:checked').value;
+
+            fetch('{% url "initialize_payment" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    cart_items: checkoutItems,
+                    delivery_method: activeFulfillmentChoice
+                })
+            })
+            .then(res => res.json().then(data => ({ ok: res.ok, data })))
+            .then(({ ok, data }) => {
+                if (!ok) throw new Error(data.error || 'Failed to initialize payment.');
+                if (data.checkout_url) {
+                    localStorage.removeItem('zemen_cart');
+                    window.location.href = data.checkout_url;
+                } else {
+                    throw new Error(data.error || 'Failed to initialize payment runtime.');
+                }
+            })
+            .catch(err => {
+                console.error("Checkout Exception:", err);
+                checkoutBtn.disabled = false;
+                showTopWarning(`Checkout Failed: ${err.message}`);
+            });
         });
-    });
+    }
 
     function showTopWarning(message) {
         removeTopWarning();
@@ -440,7 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
         summaryCount.textContent = '0';
         summarySubtotal.textContent = '0.00';
         summaryTotal.textContent = '0.00';
-        checkoutBtn.disabled = true;
+        if (isUserAuthenticated) checkoutBtn.disabled = true;
     }
 
     function escapeHtml(value) {

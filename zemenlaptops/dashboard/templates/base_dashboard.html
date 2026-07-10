@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Zemen Laptops</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23f59e0b' stroke-width='2.5'><path stroke-linecap='round' stroke-linejoin='round' d='M4.5 5.25A2.25 2.25 0 016.75 3h10.5a2.25 2.25 0 012.25 2.25v9H4.5v-9z'/><path stroke-linecap='round' stroke-linejoin='round' d='M2.25 18.75h19.5l-1.5-4.5H3.75l-1.5 4.5z'/><path stroke-linecap='round' stroke-linejoin='round' d='M9.75 17.25h4.5'/></svg>">
+    
+    <!-- TailWind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="flex min-h-full bg-[#f8fafc] text-slate-800 antialiased">
+
+    <div class="flex w-full min-h-screen">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-slate-950 text-slate-200 flex flex-col shrink-0 border-r border-slate-900">
+            <!-- Brand Logo Header -->
+            <div class="p-6 border-b border-slate-900 flex items-center gap-3">
+                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500 text-slate-950 shadow-sm shadow-amber-500/20">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 5.25A2.25 2.25 0 016.75 3h10.5a2.25 2.25 0 012.25 2.25v9H4.5v-9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75h19.5l-1.5-4.5H3.75l-1.5 4.5z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17.25h4.5" />
+                    </svg>
+                </div>
+                <span class="font-extrabold text-sm tracking-wider text-white">ZEMEN ADMIN</span>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="flex-1 p-4 space-y-1.5 text-xs font-bold uppercase tracking-wider">
+                <a href="{% url 'dashboard' %}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-white transition-all">
+                    <i class="fa-solid fa-chart-pie w-5 text-slate-500 hover:text-amber-500 text-sm"></i>
+                    <span>Home Metrics</span>
+                </a>
+
+                <a href="{% url 'laptop_manage' %}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-white transition-all">
+                    <i class="fa-solid fa-laptop w-5 text-slate-500 hover:text-amber-500 text-sm"></i>
+                    <span>Inventory</span>
+                </a>
+
+                <a href="{% url 'user_manage' %}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-white transition-all">
+                    <i class="fa-solid fa-users w-5 text-slate-500 hover:text-amber-500 text-sm"></i>
+                    <span>Customers</span>
+                </a>
+
+                <a href="{% url 'order_manage' %}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-white transition-all">
+                    <i class="fa-solid fa-basket-shopping w-5 text-slate-500 hover:text-amber-500 text-sm"></i>
+                    <span>Orders Ledger</span>
+                </a>
+            </nav>
+
+            <!-- Sidebar Footer -->
+            <div class="p-6 border-t border-slate-900 text-[10px] font-extrabold uppercase tracking-wider text-slate-600 text-center">
+                &copy; 2026 Zemen Admin
+            </div>
+        </aside>
+
+        <!-- Main Workspace Area -->
+        <main class="flex-grow flex flex-col min-w-0">
+            
+            <!-- Global Admin Top Header -->
+            <header class="bg-white/80 backdrop-blur-md border-b border-slate-200/80 h-16 flex items-center justify-between px-8 sticky top-0 z-10 shadow-xs">
+                <div class="text-xs font-extrabold uppercase tracking-wider text-slate-900">System Management Suite</div>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Administrator</span>
+                    <div class="h-8 w-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-extrabold text-xs shadow-sm shadow-amber-500/15">
+                        A
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content Body -->
+            <div class="p-8 flex-1 overflow-y-auto">
+                {% block dashboard_content %}
+                
+                <!-- Stat Card Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    
+                    <!-- Metric Card: Laptops -->
+                    <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm flex items-center justify-between relative overflow-hidden">
+                        <div class="absolute inset-x-6 top-0 h-12 bg-amber-400/5 blur-xl pointer-events-none"></div>
+                        <div class="relative z-10">
+                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Laptops Tracked</p>
+                            <h3 class="text-3xl font-extrabold text-slate-900 tracking-tight">{{ total_laptops }}</h3>
+                        </div>
+                        <div class="relative z-10 flex h-11 w-11 items-center justify-center rounded-xl bg-slate-50 border border-slate-200/60 text-amber-500 shadow-xs">
+                            <i class="fa-solid fa-laptop text-sm"></i>
+                        </div>
+                    </div>
+
+                    <!-- Metric Card: Users -->
+                    <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm flex items-center justify-between relative overflow-hidden">
+                        <div class="absolute inset-x-6 top-0 h-12 bg-amber-400/5 blur-xl pointer-events-none"></div>
+                        <div class="relative z-10">
+                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Registered Users</p>
+                            <h3 class="text-3xl font-extrabold text-slate-900 tracking-tight">{{ total_users }}</h3>
+                        </div>
+                        <div class="relative z-10 flex h-11 w-11 items-center justify-center rounded-xl bg-slate-50 border border-slate-200/60 text-amber-500 shadow-xs">
+                            <i class="fa-solid fa-users text-sm"></i>
+                        </div>
+                    </div>
+
+                    <!-- Metric Card: Orders -->
+                    <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm flex items-center justify-between relative overflow-hidden">
+                        <div class="absolute inset-x-6 top-0 h-12 bg-amber-400/5 blur-xl pointer-events-none"></div>
+                        <div class="relative z-10">
+                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Total Orders Placed</p>
+                            <h3 class="text-3xl font-extrabold text-slate-900 tracking-tight">{{ total_orders }}</h3>
+                        </div>
+                        <div class="relative z-10 flex h-11 w-11 items-center justify-center rounded-xl bg-slate-50 border border-slate-200/60 text-amber-500 shadow-xs">
+                            <i class="fa-solid fa-box text-sm"></i>
+                        </div>
+                    </div>
+
+                    <!-- Metric Card: Reviews -->
+                    <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm flex items-center justify-between relative overflow-hidden">
+                        <div class="absolute inset-x-6 top-0 h-12 bg-amber-400/5 blur-xl pointer-events-none"></div>
+                        <div class="relative z-10">
+                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Reviews Logged</p>
+                            <h3 class="text-3xl font-extrabold text-slate-900 tracking-tight">{{ total_reviews }}</h3>
+                        </div>
+                        <div class="relative z-10 flex h-11 w-11 items-center justify-center rounded-xl bg-slate-50 border border-slate-200/60 text-amber-500 shadow-xs">
+                            <i class="fa-solid fa-star text-sm"></i>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Recent Orders Data Block -->
+                <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm overflow-hidden">
+                    <h2 class="text-base font-extrabold tracking-wide text-slate-900 mb-4">Recent Order Snapshot</h2>
+                    <div class="overflow-x-auto -mx-6 -mb-6">
+                        <table class="w-full text-left text-sm text-slate-600 min-w-[600px]">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200/80 text-slate-500 uppercase font-extrabold text-[10px] tracking-wider">
+                                    <th class="py-3 px-6">TX Ref</th>
+                                    <th class="py-3 px-6">Customer</th>
+                                    <th class="py-3 px-6">Amount</th>
+                                    <th class="py-3 px-6">Payment</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                {% for order in recent_orders %}
+                                <tr class="hover:bg-slate-50/50 transition">
+                                    <td class="py-3.5 px-6 font-mono text-xs text-slate-900 font-semibold">{{ order.tx_ref|truncatechars:15 }}</td>
+                                    <td class="py-3.5 px-6 font-bold text-slate-800">{{ order.customer }}</td>
+                                    <td class="py-3.5 px-6 font-extrabold text-slate-900">ETB{{ order.total_amount }}</td>
+                                    <td class="py-3.5 px-6">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider
+                                            {% if order.payment_status == 'completed' %} bg-emerald-50 text-emerald-700 border border-emerald-100
+                                            {% elif order.payment_status == 'pending' %} bg-amber-50 text-amber-700 border border-amber-100
+                                            {% else %} bg-rose-50 text-rose-700 border border-rose-100 {% endif %}">
+                                            {{ order.get_payment_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="py-10 text-center text-xs font-bold uppercase tracking-wider text-slate-400">
+                                        No recent transactions recorded.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {% endblock dashboard_content %}
+            </div>
+
+        </main>
+    </div>
+
+</body>
+</html>

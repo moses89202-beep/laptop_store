@@ -1,0 +1,197 @@
+{% extends 'base_dashboard.html' %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+    
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 bg-white border border-slate-200/80 rounded-2xl shadow-sm relative overflow-hidden">
+        <div class="absolute inset-x-6 top-0 h-12 bg-amber-400/5 blur-xl pointer-events-none"></div>
+        <div class="relative z-10">
+            <h1 class="text-base font-extrabold text-slate-900 tracking-tight">User Management</h1>
+            <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mt-0.5">Manage system access credentials and associated customer profiles.</p>
+        </div>
+        <div class="relative z-10 sm:text-right">
+            <a href="{% url 'user_manage' %}" class="inline-flex py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-extrabold rounded-xl shadow-md shadow-amber-500/15 transition uppercase tracking-wider items-center gap-2">
+                <i class="fa-solid fa-plus text-xs"></i> Add New User
+            </a>
+        </div>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto -mx-6 -mb-6">
+            <table class="w-full text-left text-sm text-slate-600 min-w-[950px]">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200/80 text-slate-500 uppercase font-extrabold text-[10px] tracking-wider">
+                        <th class="py-4 px-6">Account & Username</th>
+                        <th class="py-4 px-6">Full Name / Profile</th>
+                        <th class="py-4 px-6">Contact Info</th>
+                        <th class="py-4 px-6">Address</th>
+                        <th class="py-4 px-6 text-center">Status</th>
+                        <th class="py-4 px-6 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for u in users %}
+                    <tr class="hover:bg-slate-50/50 transition {% if selected_user.id == u.id %} bg-amber-500/5 {% endif %}">
+                        <td class="py-4 px-6">
+                            <div class="space-y-1">
+                                <span class="block font-mono text-xs text-slate-900 font-extrabold tracking-tight">
+                                    {{ u.username }}
+                                </span>
+                                <div class="flex items-center gap-1.5 text-[11px] text-slate-500 font-semibold">
+                                    <i class="fa-regular fa-envelope text-slate-400"></i>
+                                    <span>{{ u.email }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-4 px-6 text-xs">
+                            <span class="font-bold text-slate-800 block">{{ u.customer_profile.full_name|default:"—" }}</span>
+                            <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Customer Profile</span>
+                        </td>
+                        <td class="py-4 px-6 text-xs space-y-1">
+                            <div class="flex items-center gap-1.5">
+                                <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-extrabold text-[9px] uppercase tracking-wider">Phone</span>
+                                <span class="font-semibold text-slate-800">{{ u.customer_profile.phone_number|default:"—" }}</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-extrabold text-[9px] uppercase tracking-wider">Alt Email</span>
+                                <span class="font-medium text-slate-500">{{ u.customer_profile.email|default:"—" }}</span>
+                            </div>
+                        </td>
+                        <td class="py-4 px-6 max-w-[200px] truncate">
+                            <span class="block text-slate-700 text-xs font-semibold">{{ u.customer_profile.address|default:"—" }}</span>
+                        </td>
+                        <td class="py-4 px-6 text-center">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider
+                                {% if u.is_active %} bg-emerald-50 text-emerald-700 border border-emerald-100
+                                {% else %} bg-rose-50 text-rose-700 border border-rose-100 {% endif %}">
+                                {% if u.is_active %} Active {% else %} Inactive {% endif %}
+                            </span>
+                        </td>
+                        <td class="py-4 px-6 text-right">
+                            <div class="inline-flex gap-2">
+                                <a href="{% url 'user_edit' u.pk %}" class="h-9 w-9 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 text-slate-600 hover:text-slate-900 flex items-center justify-center rounded-xl transition shadow-xs" title="Edit User">
+                                    <i class="fa-solid fa-pen text-xs"></i>
+                                </a>
+                                <form method="POST" action="{% url 'user_edit' u.pk %}" onsubmit="return confirm('Are you sure you want to completely remove this user account?');" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" name="delete_user" class="h-9 w-9 bg-rose-50 hover:bg-rose-100 border border-rose-100 text-rose-600 flex items-center justify-center rounded-xl transition shadow-xs" title="Delete User Profile">
+                                        <i class="fa-solid fa-trash text-xs"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="py-12 text-center text-xs font-bold uppercase tracking-wider text-slate-400">
+                            No registered users discovered.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="userModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 {% if not selected_user and not user_form.errors and not customer_form.errors %}hidden{% endif %}">
+    
+    <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity" onclick="closeModal()"></div>
+    
+    <div class="relative bg-white rounded-2xl shadow-2xl border border-slate-200/80 max-w-lg w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+        
+        <div class="p-6 border-b border-slate-200/80 flex items-center justify-between bg-slate-50/50">
+            <div>
+                <h3 class="text-base font-extrabold text-slate-900 tracking-tight">
+                    {% if selected_user %}Modify User Credentials{% else %}Register New User Account{% endif %}
+                </h3>
+                <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mt-0.5">
+                    {% if selected_user %}Adjust security details for Account Ref: {{ selected_user.username }}{% else %}Populate credentials alongside customer profile variables.{% endif %}
+                </p>
+            </div>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 transition p-1.5 rounded-lg hover:bg-slate-100">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+        </div>
+
+        <form method="POST" class="flex flex-col flex-1 overflow-hidden">
+            {% csrf_token %}
+            
+            <div class="p-6 space-y-5 overflow-y-auto flex-1">
+                
+                <div>
+                    <h4 class="text-[10px] font-extrabold uppercase tracking-wider text-amber-600 mb-3 border-b border-slate-100 pb-1">Core Authentication</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {% for field in user_form %}
+                            {% if field.name != 'password' or not selected_user %}
+                            <div class="flex flex-col gap-1.5 {% if field.name == 'password' or field.name == 'email' %}sm:col-span-2{% endif %}">
+                                <label class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">{{ field.label }}</label>
+                                <div class="w-full dynamic-field-wrapper">
+                                    {{ field }}
+                                </div>
+                                {% if field.errors %}
+                                    <span class="text-[10px] font-bold text-rose-500 mt-1 flex items-center gap-1">
+                                        <i class="fa-solid fa-triangle-exclamation text-[9px]"></i>
+                                        {{ field.errors.as_text }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <h4 class="text-[10px] font-extrabold uppercase tracking-wider text-amber-600 mb-3 border-b border-slate-100 pb-1">Customer Profile Metadata</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {% for field in customer_form %}
+                        <div class="flex flex-col gap-1.5 {% if field.name == 'address' or field.name == 'full_name' %}sm:col-span-2{% endif %}">
+                            <label class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">{{ field.label }}</label>
+                            <div class="w-full dynamic-field-wrapper">
+                                {{ field }}
+                            </div>
+                            {% if field.errors %}
+                                <span class="text-[10px] font-bold text-rose-500 mt-1 flex items-center gap-1">
+                                    <i class="fa-solid fa-triangle-exclamation text-[9px]"></i>
+                                    {{ field.errors.as_text }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="p-6 border-t border-slate-200/80 bg-slate-50/50 flex gap-3">
+                <button type="submit" name="save_user" class="flex-1 py-3 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-extrabold rounded-xl shadow-md shadow-amber-500/15 transition uppercase tracking-wider">
+                    Commit Updates
+                </button>
+                <button type="button" onclick="closeModal()" class="py-3 px-4 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold rounded-xl transition uppercase tracking-wider">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Modal Visibility Control handler
+    function closeModal() {
+        // Redirect back to baseline route
+        window.location.href = "{% url 'user_manage' %}";
+    }
+
+    // Modern styling injector for dynamically-rendered form elements (Inputs, Password, Selects)
+    document.addEventListener("DOMContentLoaded", function() {
+        const textInputs = document.querySelectorAll('.dynamic-field-wrapper input, .dynamic-field-wrapper select');
+        textInputs.forEach(field => {
+            field.classList.add(
+                'w-full', 'px-4', 'py-2.5', 'text-sm', 'bg-slate-50', 'border', 'border-slate-200', 
+                'rounded-xl', 'focus:outline-none', 'focus:border-amber-500', 'focus:bg-white', 
+                'transition-all', 'font-semibold', 'text-slate-800'
+            );
+        });
+    });
+</script>
+{% endblock dashboard_content %}

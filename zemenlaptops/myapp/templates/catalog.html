@@ -1,61 +1,30 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static l10n %}
 
 {% block title %}Explore Laptops | Zemen Laptops{% endblock %}
 
 {% block content %}
+<!-- ✅ Ensure Bootstrap Icons CDN is loaded for the stars to render -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 pb-12 text-slate-900 antialiased">
 
     <div class="mt-2 mb-8 max-w-3xl mx-auto w-full">
         <form method="GET" action="" class="relative">
             <input type="hidden" name="page" value="1">
 
-            {% if request.GET.sort %}
-                <input type="hidden" name="sort" value="{{ request.GET.sort }}">
-            {% endif %}
-
-            {% if request.GET.brand %}
-                <input type="hidden" name="brand" value="{{ request.GET.brand }}">
-            {% endif %}
-
-            {% if request.GET.ram %}
-                <input type="hidden" name="ram" value="{{ request.GET.ram }}">
-            {% endif %}
-
-            {% if request.GET.cpu %}
-                <input type="hidden" name="cpu" value="{{ request.GET.cpu }}">
-            {% endif %}
-
-            {% if request.GET.gpu %}
-                <input type="hidden" name="gpu" value="{{ request.GET.gpu }}">
-            {% endif %}
-
-            {% if request.GET.storage %}
-                <input type="hidden" name="storage" value="{{ request.GET.storage }}">
-            {% endif %}
-
-            {% if request.GET.screen_size %}
-                <input type="hidden" name="screen_size" value="{{ request.GET.screen_size }}">
-            {% endif %}
-
-            {% if request.GET.os %}
-                <input type="hidden" name="os" value="{{ request.GET.os }}">
-            {% endif %}
-
-            {% if request.GET.max_price %}
-                <input type="hidden" name="max_price" value="{{ request.GET.max_price }}">
-            {% endif %}
-
-            {% if request.GET.in_stock %}
-                <input type="hidden" name="in_stock" value="{{ request.GET.in_stock }}">
-            {% endif %}
+            {% for key, value in request.GET.items %}
+                {% if key != 'search' and key != 'page' %}
+                    <input type="hidden" name="{{ key }}" value="{{ value }}">
+                {% endif %}
+            {% endfor %}
 
             <div class="relative flex items-center bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow transition-all duration-300 group focus-within:ring-2 focus-within:ring-slate-950 focus-within:border-transparent">
                 <span class="absolute left-5 text-slate-400 group-focus-within:text-slate-950 transition-colors duration-200">
                     <i class="bi bi-search text-base"></i>
                 </span>
 
-                <input 
+                <input
                     type="text"
                     name="search"
                     value="{{ request.GET.search|default:'' }}"
@@ -63,7 +32,7 @@
                     placeholder="Search brands, technical features, models..."
                 >
 
-                <button 
+                <button
                     type="submit"
                     class="absolute right-2 bg-slate-950 text-white font-bold rounded-xl text-[11px] uppercase tracking-widest px-5 py-2.5 hover:bg-slate-800 active:scale-95 transition-all duration-200"
                 >
@@ -77,17 +46,13 @@
 
         <aside class="lg:col-span-1 lg:sticky lg:top-24">
             <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
-
                 <div class="flex items-center gap-2.5 mb-6 text-xs uppercase tracking-wider font-bold text-slate-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-950" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                    </svg>
-
+                    <i class="bi bi-sliders text-slate-950"></i>
                     Filter Catalog
                 </div>
 
                 <form method="GET" action="" id="filterForm" class="space-y-5">
-                    <input type="hidden" name="page" id="filterFormPage" value="{{ request.GET.page|default:'1' }}">
+                    <input type="hidden" name="page" id="filterFormPage" value="1">
 
                     {% if request.GET.search %}
                         <input type="hidden" name="search" value="{{ request.GET.search }}">
@@ -98,15 +63,26 @@
                             Sort By
                         </label>
 
-                        <select 
+                        <select
                             name="sort"
-                            class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 focus:bg-white transition-all outline-none"
-                            onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();"
+                            class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 outline-none"
+                            onchange="this.form.submit();"
                         >
-                            <option value="date_desc" {% if request.GET.sort == 'date_desc' %}selected{% endif %}>Newest Arrivals</option>
-                            <option value="date_asc" {% if request.GET.sort == 'date_asc' %}selected{% endif %}>Oldest</option>
-                            <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
-                            <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                            <option value="date_desc" {% if request.GET.sort == 'date_desc' %}selected{% endif %}>
+                                Newest Arrivals
+                            </option>
+                            <option value="date_asc" {% if request.GET.sort == 'date_asc' %}selected{% endif %}>
+                                Oldest
+                            </option>
+                            <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>
+                                Price: Low to High
+                            </option>
+                            <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>
+                                Price: High to Low
+                            </option>
+                            <option value="rating_desc" {% if request.GET.sort == 'rating_desc' %}selected{% endif %}>
+                                Highest Rated
+                            </option>
                         </select>
                     </div>
 
@@ -115,10 +91,10 @@
                             Brand
                         </label>
 
-                        <select 
+                        <select
                             name="brand"
-                            class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 focus:bg-white transition-all outline-none"
-                            onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();"
+                            class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 outline-none"
+                            onchange="this.form.submit();"
                         >
                             <option value="">All Brands</option>
 
@@ -135,10 +111,10 @@
                             RAM Size
                         </label>
 
-                        <select 
+                        <select
                             name="ram"
-                            class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 focus:bg-white transition-all outline-none"
-                            onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();"
+                            class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 outline-none"
+                            onchange="this.form.submit();"
                         >
                             <option value="">Any RAM</option>
 
@@ -152,53 +128,13 @@
 
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-1.5">
-                            Processor CPU
-                        </label>
-
-                        <select 
-                            name="cpu"
-                            class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 focus:bg-white transition-all outline-none"
-                            onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();"
-                        >
-                            <option value="">Any CPU</option>
-
-                            {% for c in cpus %}
-                                <option value="{{ c }}" {% if request.GET.cpu == c %}selected{% endif %}>
-                                    {{ c }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">
-                            Graphics Engine GPU
-                        </label>
-
-                        <select 
-                            name="gpu"
-                            class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 focus:bg-white transition-all outline-none"
-                            onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();"
-                        >
-                            <option value="">Any GPU</option>
-
-                            {% for g in gpus %}
-                                <option value="{{ g }}" {% if request.GET.gpu == g %}selected{% endif %}>
-                                    {{ g }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">
                             Storage Capacity
                         </label>
 
-                        <select 
+                        <select
                             name="storage"
-                            class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 focus:bg-white transition-all outline-none"
-                            onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();"
+                            class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 outline-none"
+                            onchange="this.form.submit();"
                         >
                             <option value="">Any Storage</option>
 
@@ -212,91 +148,69 @@
 
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-1.5">
-                            Screen Size
+                            GPU
                         </label>
 
-                        <select 
-                            name="screen_size"
-                            class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 focus:bg-white transition-all outline-none"
-                            onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();"
+                        <select
+                            name="gpu"
+                            class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 outline-none"
+                            onchange="this.form.submit();"
                         >
-                            <option value="">Any Size</option>
+                            <option value="">Any GPU</option>
 
-                            {% for size in screen_sizes %}
-                                <option value="{{ size }}" {% if request.GET.screen_size == size|stringformat:'s' %}selected{% endif %}>
-                                    {{ size }}
+                            {% for g in gpus %}
+                                <option value="{{ g }}" {% if request.GET.gpu == g %}selected{% endif %}>
+                                    {{ g }}
                                 </option>
                             {% endfor %}
                         </select>
                     </div>
+
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-1.5">
                             Operating System
                         </label>
-                        <select 
+
+                        <select
                             name="os"
-                            class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 focus:bg-white transition-all outline-none"
-                            onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();"
+                            class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 outline-none"
+                            onchange="this.form.submit();"
                         >
                             <option value="">Any OS</option>
 
-                            {% for system in os_options %}
-                                <option value="{{ system }}" {% if request.GET.os == system %}selected{% endif %}>
-                                    {{ system }}
+                            {% for o in os_options %}
+                                <option value="{{ o }}" {% if request.GET.os == o %}selected{% endif %}>
+                                    {{ o }}
                                 </option>
                             {% endfor %}
                         </select>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">
-                            Maximum Price
-                        </label>
-
-                        <input 
-                            type="number"
-                            name="max_price"
-                            value="{{ request.GET.max_price|default:'' }}"
-                            min="0"
-                            step="1"
-                            placeholder="Example: 50000"
-                            class="w-full bg-slate-50 border-0 rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:ring-2 focus:ring-slate-950 focus:bg-white transition-all outline-none"
-                        >
-                    </div>
-
                     <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-3">
                         <label class="flex items-start gap-3 cursor-pointer select-none">
-                            <input 
+                            <input
                                 type="checkbox"
                                 name="in_stock"
                                 value="1"
                                 class="mt-0.5 h-4 w-4 rounded border-slate-300 text-slate-950 focus:ring-slate-950"
                                 {% if in_stock %}checked{% endif %}
-                                onchange="document.getElementById('filterFormPage').value='1'; this.form.submit();"
+                                onchange="this.form.submit();"
                             >
 
                             <div>
                                 <span class="block text-xs font-bold text-slate-800">
-                                    Show only in-stock laptops
+                                    In-stock only
                                 </span>
-
                                 <span class="block text-[11px] text-slate-400 mt-0.5">
-                                    Uses database stock quantity.
+                                    Hide unavailable items.
                                 </span>
                             </div>
                         </label>
                     </div>
 
-                    <button 
-                        type="submit"
-                        class="block text-center w-full bg-slate-950 text-white hover:bg-slate-800 transition font-semibold py-2.5 rounded-xl text-xs tracking-wide"
-                    >
-                        Apply Filters
-                    </button>
-
-                    <a 
+                    <a
                         href="{% url 'laptop_catalog' %}"
-                        class="block text-center w-full border border-slate-200 text-slate-700 hover:bg-slate-50 transition font-semibold py-2.5 rounded-xl text-xs tracking-wide"
+                        class="block text-center w-full border border-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-semibold hover:bg-slate-50 active:scale-[0.98] transition-all"
                     >
                         Clear All Filters
                     </a>
@@ -305,14 +219,17 @@
         </aside>
 
         <main class="lg:col-span-3">
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
 
                 {% for laptop in page_obj %}
-                    <div class="group bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col">
+                    <div class="group bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col">
 
-                        <div class="relative bg-slate-50/80 h-52 flex items-center justify-center p-6 border-b border-slate-100/60 overflow-hidden">
+                        <a
+                            href="{% url 'laptop_detail' laptop.id %}"
+                            class="relative bg-slate-50/80 h-60 flex items-center justify-center p-8 border-b border-slate-100/60 overflow-hidden block"
+                        >
                             {% if laptop.image %}
-                                <img 
+                                <img
                                     src="{{ laptop.image.url }}"
                                     class="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
                                     alt="{{ laptop.name }}"
@@ -326,125 +243,154 @@
                             <span class="absolute top-4 left-4 bg-white border border-slate-100 text-slate-900 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-lg shadow-sm">
                                 {{ laptop.brand }}
                             </span>
+                        </a>
 
-                            {% if laptop.quantity <= 0 %}
-                                <span class="absolute top-4 right-4 bg-rose-600 text-white text-[10px] font-black tracking-widest uppercase px-2.5 py-1 rounded-lg shadow-sm">
-                                    Out of Stock
-                                </span>
-                            {% elif laptop.quantity < 10 %}
-                                <span class="absolute top-4 right-4 bg-amber-500 text-slate-950 text-[10px] font-black tracking-widest uppercase px-2.5 py-1 rounded-lg shadow-sm">
-                                    Low Stock
-                                </span>
-                            {% else %}
-                                <span class="absolute top-4 right-4 bg-emerald-500 text-white text-[10px] font-black tracking-widest uppercase px-2.5 py-1 rounded-lg shadow-sm">
-                                    In Stock
-                                </span>
-                            {% endif %}
-                        </div>
+                        <div class="p-6 flex flex-col flex-grow">
 
-                        <div class="p-5 flex flex-col flex-grow">
-                            <h3 class="text-sm font-bold text-slate-900 truncate mb-3" title="{{ laptop.name }}">
-                                {{ laptop.name }}
+                            <h3 class="text-base font-bold text-slate-900 truncate mb-2" title="{{ laptop.name }}">
+                                <a
+                                    href="{% url 'laptop_detail' laptop.id %}"
+                                    class="hover:text-amber-500 transition-colors duration-150"
+                                >
+                                    {{ laptop.name }}
+                                </a>
                             </h3>
 
+                            <!-- ✅ STAR RATING REPRESENTATION SECTION -->
+                            <div class="flex items-center mb-4 select-none leading-none font-sans">
+                                {% with rating=laptop.avg_rating|default:0 review_count=laptop.review_count|default:0 %}
+
+                                    <span class="text-[14px] font-medium text-slate-900 mr-1.5 tracking-tight">
+                                        {{ rating|floatformat:1 }}
+                                    </span>
+
+                                    <!-- Stars match yellow/orange review style -->
+                                    <div class="flex items-center gap-[1px] text-[15px] text-orange-500 align-middle">
+                                        {% if rating >= 0.75 %}<i class="bi bi-star-fill"></i>{% elif rating >= 0.25 %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
+                                        {% if rating >= 1.75 %}<i class="bi bi-star-fill"></i>{% elif rating >= 1.25 %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
+                                        {% if rating >= 2.75 %}<i class="bi bi-star-fill"></i>{% elif rating >= 2.25 %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
+                                        {% if rating >= 3.75 %}<i class="bi bi-star-fill"></i>{% elif rating >= 3.25 %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
+                                        {% if rating >= 4.75 %}<i class="bi bi-star-fill"></i>{% elif rating >= 4.25 %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
+                                    </div>
+
+                                    <i class="bi bi-chevron-down text-slate-800 text-[10px] font-black ml-1"></i>
+
+                                    <a
+                                        href="{% url 'laptop_detail' laptop.id %}#reviews"
+                                        class="text-[14px] text-[#1a0dab] hover:underline ml-1.5"
+                                    >
+                                        ({{ review_count }})
+                                    </a>
+
+                                {% endwith %}
+                            </div>
+
                             <div class="flex flex-wrap gap-1.5 mb-4">
-                                <span class="inline-flex items-center text-[11px] font-medium bg-slate-50 text-slate-600 px-2.5 py-1.5 rounded-lg">
-                                    <i class="bi bi-cpu text-slate-400 mr-1.5"></i>
-                                    {{ laptop.cpu }}
-                                </span>
 
-                                <span class="inline-flex items-center text-[11px] font-medium bg-slate-50 text-slate-600 px-2.5 py-1.5 rounded-lg">
-                                    <i class="bi bi-memory text-slate-400 mr-1.5"></i>
-                                    {{ laptop.ram }}
-                                </span>
+                                {% if laptop.cpu %}
+                                    <span class="inline-flex items-center text-[10px] font-medium bg-slate-50 text-slate-600 px-2.5 py-1.5 rounded-md" title="CPU">
+                                        <i class="bi bi-cpu mr-1.5 text-slate-400"></i>
+                                        {{ laptop.cpu|truncatechars:15 }}
+                                    </span>
+                                {% endif %}
 
-                                <span class="inline-flex items-center text-[11px] font-medium bg-slate-50 text-slate-600 px-2.5 py-1.5 rounded-lg">
-                                    <i class="bi bi-database text-slate-400 mr-1.5"></i>
-                                    {{ laptop.storage }}
-                                </span>
+                                {% if laptop.ram %}
+                                    <span class="inline-flex items-center text-[10px] font-medium bg-slate-50 text-slate-600 px-2.5 py-1.5 rounded-md" title="RAM">
+                                        <i class="bi bi-memory mr-1.5 text-slate-400"></i>
+                                        {{ laptop.ram }}
+                                    </span>
+                                {% endif %}
+
+                                {% if laptop.storage %}
+                                    <span class="inline-flex items-center text-[10px] font-medium bg-slate-50 text-slate-600 px-2.5 py-1.5 rounded-md" title="Storage">
+                                        <i class="bi bi-hdd mr-1.5 text-slate-400"></i>
+                                        {{ laptop.storage }}
+                                    </span>
+                                {% endif %}
 
                                 {% if laptop.gpu %}
-                                    <span class="inline-flex items-center text-[11px] font-medium bg-slate-50 text-slate-600 px-2.5 py-1.5 rounded-lg">
-                                        <i class="bi bi-gpu-card text-slate-400 mr-1.5"></i>
-                                        {{ laptop.gpu }}
+                                    <span class="inline-flex items-center text-[10px] font-medium bg-slate-50 text-slate-600 px-2.5 py-1.5 rounded-md" title="GPU Card">
+                                        <i class="bi bi-pci-card mr-1.5 text-slate-400"></i>
+                                        {{ laptop.gpu|truncatechars:15 }}
+                                    </span>
+                                {% endif %}
+
+                                {% if laptop.os %}
+                                    <span class="inline-flex items-center text-[10px] font-medium bg-slate-50 text-slate-600 px-2.5 py-1.5 rounded-md" title="Operating System">
+                                        <i class="bi bi-terminal mr-1.5 text-slate-400"></i>
+                                        {{ laptop.os }}
                                     </span>
                                 {% endif %}
                             </div>
 
-                            <div class="mb-5">
-                                {% if laptop.quantity <= 0 %}
-                                    <div class="inline-flex items-center gap-1.5 rounded-lg border border-rose-100 bg-rose-50 text-rose-700 px-2.5 py-1 text-[11px] font-bold">
-                                        <i class="bi bi-x-circle-fill"></i>
-                                        Currently unavailable
-                                    </div>
-                                {% elif laptop.quantity < 10 %}
-                                    <div class="inline-flex items-center gap-1.5 rounded-lg border border-amber-100 bg-amber-50 text-amber-700 px-2.5 py-1 text-[11px] font-bold">
-                                        <i class="bi bi-exclamation-triangle-fill"></i>
-
-                                        {% if laptop.quantity <= 3 %}
-                                            Only {{ laptop.quantity }} left
-                                        {% else %}
-                                            {{ laptop.quantity }} available
-                                        {% endif %}
-                                    </div>
-                                {% else %}
-                                    <div class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-100 bg-emerald-50 text-emerald-700 px-2.5 py-1 text-[11px] font-bold">
-                                        <i class="bi bi-check-circle-fill"></i>
-                                        In stock
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
-                                <div>
-                                    <span class="block text-[9px] font-bold tracking-widest text-slate-400 uppercase">
-                                        Pricing
-                                    </span>
-
-                                    <span class="text-base font-extrabold text-slate-900 tracking-tight">
-                                        {{ laptop.price }}
-                                        <span class="text-xs font-normal text-slate-400 ml-0.5">
-                                            ETB
+                            <div class="mt-auto pt-4 border-t border-slate-100">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div>
+                                        <span class="block text-[9px] font-bold tracking-widest text-slate-400 uppercase">
+                                            Price
                                         </span>
-                                    </span>
+
+                                        <span class="text-lg font-extrabold text-slate-900 tracking-tight">
+                                            {{ laptop.price }}
+                                            <span class="text-xs font-normal text-slate-400">
+                                                ETB
+                                            </span>
+                                        </span>
+                                    </div>
+
+                                    {% if laptop.quantity <= 0 %}
+                                        <span class="text-[10px] font-bold text-red-500 bg-red-50 px-2.5 py-1 rounded-full">
+                                            Out of Stock
+                                        </span>
+                                    {% else %}
+                                        <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
+                                            In Stock
+                                        </span>
+                                    {% endif %}
                                 </div>
 
-                                {% if laptop.quantity <= 0 %}
-                                    <button 
-                                        type="button"
-                                        disabled
-                                        data-id="{{ laptop.id }}"
-                                        data-stock="{{ laptop.quantity|default:0 }}"
-                                        class="inline-flex items-center gap-1.5 bg-slate-200 text-slate-400 font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm cursor-not-allowed"
+                                <div class="grid grid-cols-2 gap-3">
+
+                                    <a
+                                        href="{% url 'laptop_detail' laptop.id %}"
+                                        class="inline-flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-xs py-3 rounded-xl transition-all"
                                     >
-                                        <i class="bi bi-slash-circle text-sm"></i>
-                                        Out of Stock
-                                    </button>
-                                {% else %}
-                                    <button 
-                                        type="button"
-                                        data-id="{{ laptop.id }}"
-                                        data-stock="{{ laptop.quantity|default:0 }}"
-                                        class="add-to-cart-btn inline-flex items-center gap-1.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm hover:shadow transition-all duration-200 active:scale-95"
-                                    >
-                                        <i class="bi bi-cart-plus text-sm"></i>
-                                        Add to Cart
-                                    </button>
-                                {% endif %}
+                                        <i class="bi bi-eye"></i>
+                                        View
+                                    </a>
+
+                                    {% if laptop.quantity <= 0 %}
+                                        <button
+                                            disabled
+                                            class="inline-flex items-center justify-center gap-1.5 bg-slate-100 text-slate-400 font-bold text-xs py-3 rounded-xl cursor-not-allowed"
+                                        >
+                                            Out
+                                        </button>
+                                    {% else %}
+                                        <button
+                                            type="button"
+                                            data-id="{{ laptop.id }}"
+                                            data-stock="{{ laptop.quantity|default:0 }}"
+                                            class="add-to-cart-btn inline-flex items-center justify-center gap-1.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-sm transition-all active:scale-95"
+                                        >
+                                            <i class="bi bi-cart-plus"></i>
+                                            Add
+                                        </button>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
-
                 {% empty %}
-                    <div class="col-span-full text-center py-16 bg-white border border-slate-100 rounded-2xl shadow-sm">
+                    <div class="col-span-full text-center py-16 bg-white border border-slate-100 rounded-2xl">
                         <i class="bi bi-inboxes text-slate-200 text-6xl block mb-4"></i>
 
                         <h4 class="text-base font-bold text-slate-800">
-                            No items match your choice
+                            No items found
                         </h4>
 
                         <p class="text-slate-400 text-xs mt-1">
-                            Try tweaking your search term filters or refreshing catalog layout.
+                            Try adjusting your filters or search terms.
                         </p>
                     </div>
                 {% endfor %}
@@ -456,12 +402,11 @@
 
                         {% if page_obj.has_previous %}
                             <li>
-                                <a 
-                                    class="flex items-center justify-center w-9 h-9 text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 rounded-lg transition shadow-sm"
-                                    href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' and value and value != 'None' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
-                                    aria-label="Previous"
+                                <a
+                                    class="flex items-center justify-center w-9 h-9 text-sm bg-white rounded-lg shadow-sm"
+                                    href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"
                                 >
-                                    <span aria-hidden="true">&lsaquo;</span>
+                                    &lsaquo;
                                 </a>
                             </li>
                         {% endif %}
@@ -469,15 +414,15 @@
                         {% for num in page_obj.paginator.page_range %}
                             {% if page_obj.number == num %}
                                 <li>
-                                    <span class="flex items-center justify-center w-9 h-9 text-sm font-bold text-white bg-slate-950 rounded-lg shadow-sm">
+                                    <span class="flex items-center justify-center w-9 h-9 text-sm font-bold text-white bg-slate-950 rounded-lg">
                                         {{ num }}
                                     </span>
                                 </li>
                             {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                                 <li>
-                                    <a 
-                                        class="flex items-center justify-center w-9 h-9 text-sm font-medium text-slate-600 hover:bg-white hover:text-slate-900 rounded-lg transition"
-                                        href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' and value and value != 'None' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                                    <a
+                                        class="flex items-center justify-center w-9 h-9 text-sm text-slate-600 hover:bg-white rounded-lg"
+                                        href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"
                                     >
                                         {{ num }}
                                     </a>
@@ -487,15 +432,15 @@
 
                         {% if page_obj.has_next %}
                             <li>
-                                <a 
-                                    class="flex items-center justify-center w-9 h-9 text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 rounded-lg transition shadow-sm"
-                                    href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' and value and value != 'None' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
-                                    aria-label="Next"
+                                <a
+                                    class="flex items-center justify-center w-9 h-9 text-sm bg-white rounded-lg shadow-sm"
+                                    href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"
                                 >
-                                    <span aria-hidden="true">&rsaquo;</span>
+                                    &rsaquo;
                                 </a>
                             </li>
                         {% endif %}
+
                     </ul>
                 </nav>
             {% endif %}
@@ -507,63 +452,11 @@
 document.addEventListener('DOMContentLoaded', () => {
     const cartButtons = document.querySelectorAll('.add-to-cart-btn');
 
-    cartButtons.forEach(button => {
-        syncButtonWithCart(button);
-
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
-
-            const productId = String(button.getAttribute('data-id'));
-            const availableStock = parseInt(button.getAttribute('data-stock')) || 0;
-
-            if (availableStock <= 0) {
-                return;
-            }
-
-            let cart = getCart();
-
-            const currentQuantityInCart = cart.filter(id => id === productId).length;
-
-            if (currentQuantityInCart >= availableStock) {
-                button.className = 'add-to-cart-btn inline-flex items-center gap-1.5 bg-rose-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition-all duration-200';
-                button.innerHTML = '<i class="bi bi-exclamation-circle-fill text-sm"></i> Max Stock';
-                button.disabled = true;
-
-                setTimeout(() => {
-                    syncButtonWithCart(button);
-                }, 1500);
-
-                return;
-            }
-
-            cart.push(productId);
-
-            localStorage.setItem('zemen_cart', JSON.stringify(cart));
-
-            if (typeof updateGlobalNavbarCartCount === 'function') {
-                updateGlobalNavbarCartCount();
-            }
-
-            button.className = 'add-to-cart-btn inline-flex items-center gap-1.5 bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition-all duration-200';
-            button.innerHTML = '<i class="bi bi-check-circle-fill text-sm"></i> Added';
-            button.disabled = true;
-
-            setTimeout(() => {
-                syncButtonWithCart(button);
-            }, 1200);
-        });
-    });
-
     function getCart() {
         try {
             let cart = JSON.parse(localStorage.getItem('zemen_cart')) || [];
-
-            if (!Array.isArray(cart)) {
-                cart = [];
-            }
-
-            return cart.map(id => String(id));
-        } catch (error) {
+            return Array.isArray(cart) ? cart.map(id => String(id)) : [];
+        } catch (e) {
             return [];
         }
     }
@@ -572,32 +465,45 @@ document.addEventListener('DOMContentLoaded', () => {
         const productId = String(button.getAttribute('data-id'));
         const availableStock = parseInt(button.getAttribute('data-stock')) || 0;
         const cart = getCart();
-
-        const currentQuantityInCart = cart.filter(id => id === productId).length;
+        const inCartCount = cart.filter(id => id === productId).length;
 
         if (availableStock <= 0) {
-            button.className = 'inline-flex items-center gap-1.5 bg-slate-200 text-slate-400 font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm cursor-not-allowed';
-            button.innerHTML = '<i class="bi bi-slash-circle text-sm"></i> Out of Stock';
             button.disabled = true;
+            button.innerHTML = "Out";
             return;
         }
 
-        if (currentQuantityInCart >= availableStock) {
-            button.className = 'add-to-cart-btn inline-flex items-center gap-1.5 bg-slate-200 text-slate-400 font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm cursor-not-allowed';
-            button.innerHTML = '<i class="bi bi-check2-circle text-sm"></i> Max in Cart';
+        if (inCartCount >= availableStock) {
+            button.className = "inline-flex items-center justify-center gap-1.5 bg-slate-100 text-slate-400 font-bold text-xs py-3 rounded-xl cursor-not-allowed";
+            button.innerHTML = '<i class="bi bi-check2-circle"></i> Max';
             button.disabled = true;
-            return;
-        }
-
-        button.className = 'add-to-cart-btn inline-flex items-center gap-1.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm hover:shadow transition-all duration-200 active:scale-95';
-        button.disabled = false;
-
-        if (currentQuantityInCart > 0) {
-            button.innerHTML = '<i class="bi bi-cart-plus text-sm"></i> Add More';
         } else {
-            button.innerHTML = '<i class="bi bi-cart-plus text-sm"></i> Add to Cart';
+            button.className = "add-to-cart-btn inline-flex items-center justify-center gap-1.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-sm transition-all active:scale-95";
+            button.innerHTML = inCartCount > 0 ? '<i class="bi bi-cart-plus"></i> Add More' : '<i class="bi bi-cart-plus"></i> Add';
+            button.disabled = false;
         }
     }
+
+    cartButtons.forEach(button => {
+        syncButtonWithCart(button);
+
+        button.addEventListener('click', () => {
+            const productId = String(button.getAttribute('data-id'));
+            let cart = getCart();
+
+            cart.push(productId);
+            localStorage.setItem('zemen_cart', JSON.stringify(cart));
+
+            if (window.updateGlobalNavbarCartCount) {
+                window.updateGlobalNavbarCartCount();
+            }
+
+            button.className = "inline-flex items-center justify-center gap-1.5 bg-emerald-500 text-white font-bold text-xs py-3 rounded-xl transition-all";
+            button.innerHTML = '<i class="bi bi-check-circle"></i> Added';
+
+            setTimeout(() => syncButtonWithCart(button), 1000);
+        });
+    });
 });
 </script>
 {% endblock %}

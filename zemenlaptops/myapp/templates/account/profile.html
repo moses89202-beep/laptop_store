@@ -1,24 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        [x-cloak] { display: none !important; }
-    </style>
-</head>
-<body class="bg-[#f8fafc] text-slate-800 min-h-screen antialiased" x-data="{ deleteModalOpen: false, activeTab: 'profile' }">
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Profile | Zemen Laptops{% endblock %}
+
+{% block content %}
+<div class="bg-[#f8fafc] text-slate-800 min-h-screen antialiased" 
+     x-data="{ 
+         deleteModalOpen: false, 
+         editReviewModalOpen: false,
+         deleteReviewModalOpen: false,
+         activeTab: 'profile',
+         editActionUrl: '',
+         deleteActionUrl: '',
+         editRating: 5,
+         editText: ''
+     }">
 
 <div class="container mx-auto max-w-6xl px-4 py-8 md:py-12">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 md:mb-12">
         <div>
             <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">Account Settings</h1>
-            <p class="text-sm text-slate-500 mt-1">Manage your identity, shipping routes, and view order statements</p>
+            <p class="text-sm text-slate-500 mt-1">Manage your identity, shipping routes, reviews, and view order statements</p>
         </div>
         <a href="{% url 'home' %}" class="inline-flex items-center justify-center px-4 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm">
             Back to Store
@@ -46,19 +48,10 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         <div class="lg:col-span-4 bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm">
-            <div class="flex flex-row lg:flex-col items-center lg:text-center gap-4 lg:gap-3 mb-6">
-                <div class="w-14 h-14 lg:w-20 lg:h-20 rounded-2xl font-bold text-lg lg:text-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center tracking-wider shadow-inner shrink-0">
-                    {% if customer.full_name %}
-                        {{ customer.full_name|slice:":1"|upper }}
-                    {% else %}
-                        {{ request.user.username|slice:":1"|upper }}
-                    {% endif %}
-                </div>
-                <div class="overflow-hidden lg:w-full">
-                    <h4 class="font-bold text-slate-900 text-base lg:text-lg truncate">{{ customer.full_name|default:request.user.username }}</h4>
-                    <p class="text-xs text-slate-400 truncate mt-0.5">@{{ request.user.username }}</p>
-                    <p class="text-xs text-slate-500 truncate mt-1 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-md inline-block">{{ request.user.email }}</p>
-                </div>
+            <div class="overflow-hidden w-full mb-4">
+                <h4 class="font-bold text-slate-900 text-base lg:text-lg truncate">{{ customer.full_name|default:request.user.username }}</h4>
+                <p class="text-xs text-slate-400 truncate mt-0.5">@{{ request.user.username }}</p>
+                <p class="text-xs text-slate-500 truncate mt-1 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-md inline-block">{{ request.user.email }}</p>
             </div>
             
             <div class="my-4 border-t border-slate-100"></div>
@@ -74,6 +67,13 @@
                         Order History
                     </span>
                     <span class="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-0.5 rounded-md">{{ customer.orders.all.count|default:0 }}</span>
+                </button>
+                <button @click="activeTab = 'reviews'" :class="activeTab === 'reviews' ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center justify-between px-4 py-3 text-sm rounded-xl transition-all">
+                    <span class="flex items-center gap-3">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.907c.961 0 1.36 1.243.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.385-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                        My Product Reviews
+                    </span>
+                    <span class="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-0.5 rounded-md">{{ reviews.count|default:0 }}</span>
                 </button>
             </nav>
 
@@ -93,7 +93,6 @@
                 
                 <form method="POST" novalidate class="space-y-5">
                     {% csrf_token %}
-
                     {% if form.non_field_errors %}
                         <div class="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium rounded-xl">
                             {% for error in form.non_field_errors %}{{ error }}{% endfor %}
@@ -113,7 +112,7 @@
                                 {% if field.name == 'address' %}
                                     <textarea name="{{ field.name }}" id="{{ field.id_for_label }}"
                                               class="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all ring-offset-0 {% if field.errors %}border-rose-400 ring-4 ring-rose-500/10{% endif %}" 
-                                              rows="3" placeholder="Enter your delivery address border border-slate-200">{% if field.value %}{{ field.value }}{% endif %}</textarea>
+                                              rows="3" placeholder="Enter your delivery address">{% if field.value %}{{ field.value }}{% endif %}</textarea>
                                 {% else %}
                                     <input type="{% if field.name == 'email' %}email{% else %}text{% endif %}" 
                                            name="{{ field.name }}" id="{{ field.id_for_label }}" 
@@ -152,7 +151,6 @@
                     <div class="space-y-6">
                         {% for order in customer.orders.all %}
                             <div class="border border-slate-200 rounded-2xl overflow-hidden bg-white hover:shadow-md transition duration-200">
-                                
                                 <div class="bg-slate-50/70 border-b border-slate-200 px-4 py-4 sm:px-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 text-xs text-slate-500">
                                     <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-4 sm:gap-6">
                                         <div>
@@ -170,49 +168,17 @@
                                         <div>
                                             <p class="font-semibold text-slate-400 uppercase tracking-wider text-[10px]">Method</p>
                                             <p class="font-medium text-slate-700 mt-0.5 whitespace-nowrap">
-                                                {% if order.delivery_method == 'delivery' %}
-                                                    🚚 Delivery
-                                                {% else %}
-                                                    🏬 Pickup
-                                                {% endif %}
+                                                {% if order.delivery_method == 'delivery' %}🚚 Delivery{% else %}🏬 Pickup{% endif %}
                                             </p>
                                         </div>
                                     </div>
-
                                     <div class="flex flex-wrap items-center gap-2 mt-2 md:mt-0">
                                         {% if order.payment_status == 'completed' %}
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 whitespace-nowrap" title="Payment Status">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Paid
-                                            </span>
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Paid</span>
                                         {% elif order.payment_status == 'failed' %}
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-rose-50 text-rose-700 border border-rose-200/60 whitespace-nowrap" title="Payment Status">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Payment Failed
-                                            </span>
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-rose-50 text-rose-700 border border-rose-200/60 whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Failed</span>
                                         {% else %}
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-50 text-amber-700 border border-amber-200/60 whitespace-nowrap" title="Payment Status">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Payment Unpaid
-                                            </span>
-                                        {% endif %}
-                                        {% if order.delivery_status == 'delivered' %}
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-50 text-blue-700 border border-blue-200/60 whitespace-nowrap" title="Delivery Status">
-                                                Received
-                                            </span>
-                                        {% elif order.delivery_status == 'dispatched' %}
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/60 whitespace-nowrap" title="Delivery Status">
-                                                Out for Delivery
-                                            </span>
-                                        {% elif order.delivery_status == 'ready_for_pickup' %}
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200/60 whitespace-nowrap" title="Pickup Status">
-                                                Ready for Collection
-                                            </span>
-                                        {% elif order.delivery_status == 'picked_up' %}
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-teal-50 text-teal-700 border border-teal-200/60 whitespace-nowrap" title="Pickup Status">
-                                                Picked Up
-                                            </span>
-                                        {% else %}
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap" title="Logistics Status">
-                                                Preparing
-                                            </span>
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-50 text-amber-700 border border-amber-200/60 whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Unpaid</span>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -225,7 +191,7 @@
                                                     <svg class="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                                                 </div>
                                                 <div>
-                                                    <h5 class="font-bold text-slate-800 text-sm leading-tight text-ellipsis overflow-hidden">{{ item.laptop.name }}</h5>
+                                                    <h5 class="font-bold text-slate-800 text-sm leading-tight">{{ item.laptop.name }}</h5>
                                                     <p class="text-xs text-slate-400 mt-1">Qty: <span class="font-semibold text-slate-600">{{ item.quantity }}</span> &middot; Unit Price: ETB {{ item.price }}</p>
                                                 </div>
                                             </div>
@@ -235,20 +201,6 @@
                                         </div>
                                     {% endfor %}
                                 </div>
-
-                                {% if order.receipt %}
-                                    <div class="bg-slate-50/40 px-4 py-3 sm:px-6 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                                        <span class="text-xs text-slate-400 flex items-center gap-1">
-                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                                            Verified transaction receipt attached.
-                                        </span>
-                                        <a href="{{ order.receipt.url }}" target="_blank" download class="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800 transition">
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                            Download Receipt
-                                        </a>
-                                    </div>
-                                {% endif %}
-
                             </div>
                         {% endfor %}
                     </div>
@@ -258,10 +210,67 @@
                             <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                         </div>
                         <h4 class="font-bold text-slate-800 text-base">No orders logged yet</h4>
-                        <p class="text-xs text-slate-400 mt-1 max-w-xs">When you acquire computers or complete transactional payments, items appear right here.</p>
-                        <a href="{% url 'home' %}" class="mt-5 inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition">
-                            Explore Catalog
-                        </a>
+                        <a href="{% url 'home' %}" class="mt-5 inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition">Explore Catalog</a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div x-show="activeTab === 'reviews'" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1">
+                <h3 class="font-bold text-slate-900 text-lg mb-6 flex items-center gap-2 border-b border-slate-100 pb-4">
+                    Product Reviews
+                </h3>
+
+                {% if reviews %}
+                    <div class="space-y-4">
+                        {% for review in reviews %}
+                            <div class="border border-slate-200 rounded-2xl p-5 bg-white shadow-sm flex flex-col sm:flex-row justify-between items-start gap-4 hover:border-slate-300 transition-all">
+                                <div class="space-y-2 max-w-xl">
+                                    <span class="text-xs font-bold text-indigo-600 uppercase tracking-wide bg-indigo-50 px-2.5 py-1 rounded-md inline-block">
+                                        {{ review.laptop.brand }}
+                                    </span>
+                                    <h4 class="font-extrabold text-slate-900 text-sm sm:text-base leading-tight">{{ review.laptop.name }}</h4>
+                                    
+                                    <div class="flex items-center gap-0.5 text-amber-400">
+                                        {% for i in "12345" %}
+                                            <svg class="w-4 h-4 {% if forloop.counter <= review.rating %}fill-current{% else %}text-slate-200{% endif %}" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                            </svg>
+                                        {% endfor %}
+                                        <span class="text-xs text-slate-400 font-semibold ml-1.5">{{ review.created_at|date:"M d, Y" }}</span>
+                                    </div>
+                                    <p class="text-sm text-slate-600 leading-relaxed break-words pt-1">"{{ review.text }}"</p>
+                                </div>
+
+                                <div class="flex items-center gap-2 w-full sm:w-auto justify-end sm:justify-start border-t sm:border-t-0 border-slate-50 pt-3 sm:pt-0 shrink-0">
+                                    <button type="button" 
+                                            @click="
+                                                editActionUrl = '{% url 'update_review' review.id %}';
+                                                editRating = {{ review.rating }};
+                                                editText = `{{ review.text|escapejs }}`;
+                                                editReviewModalOpen = true;
+                                            "
+                                            class="inline-flex items-center justify-center px-3 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all shadow-sm">
+                                        Edit
+                                    </button>
+                                    <button type="button" 
+                                            @click="
+                                                deleteActionUrl = '{% url 'delete_review' review.id %}';
+                                                deleteReviewModalOpen = true;
+                                            "
+                                            class="inline-flex items-center justify-center px-3 py-2 text-xs font-semibold text-rose-600 bg-white border border-slate-200 rounded-xl hover:bg-rose-50 transition-all shadow-sm">
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="flex flex-col items-center justify-center py-12 text-center">
+                        <div class="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-300 border border-slate-100 mb-4">
+                            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.907c.961 0 1.36 1.243.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.385-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-base">No evaluations written yet</h4>
+                        <p class="text-xs text-slate-400 mt-1 max-w-xs">When you write opinions on purchased computer setups, they manage cleanly within this layout panel.</p>
                     </div>
                 {% endif %}
             </div>
@@ -271,50 +280,77 @@
 </div>
 
 <div class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-x-hidden overflow-y-auto" x-show="deleteModalOpen" x-cloak>
-    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" 
-         x-show="deleteModalOpen" 
-         x-transition:enter="ease-out duration-300" 
-         x-transition:enter-start="opacity-0" 
-         x-transition:enter-end="opacity-100" 
-         x-transition:leave="ease-in duration-200" 
-         x-transition:leave-start="opacity-100" 
-         x-transition:leave-end="opacity-0" 
-         @click="deleteModalOpen = false"></div>
-
-    <div class="relative w-full max-w-md bg-white border border-slate-100 shadow-2xl rounded-2xl p-6 transition-all transform" 
-         x-show="deleteModalOpen" 
-         x-transition:enter="ease-out duration-300" 
-         x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
-         x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" 
-         x-transition:leave="ease-in duration-200" 
-         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
-         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
-        
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" x-show="deleteModalOpen" x-transition @click="deleteModalOpen = false"></div>
+    <div class="relative w-full max-w-md bg-white border border-slate-100 shadow-2xl rounded-2xl p-6 transform transition-all" x-show="deleteModalOpen" x-transition>
         <div class="flex items-start gap-3">
             <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
             </div>
             <div>
                 <h3 class="text-base font-bold text-slate-900">Delete Account Permanently?</h3>
-                <p class="text-sm text-slate-500 mt-2 leading-relaxed">
-                    This action is final and cannot be reversed. All your saved profile records, shipping information, and credentials will be completely erased.
-                </p>
+                <p class="text-sm text-slate-500 mt-2 leading-relaxed">This action is final and cannot be reversed. All records will be completely erased.</p>
             </div>
         </div>
-
         <div class="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-slate-50">
-            <button type="button" @click="deleteModalOpen = false" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 rounded-xl transition">
-                Cancel
-            </button>
+            <button type="button" @click="deleteModalOpen = false" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 rounded-xl transition">Cancel</button>
             <form action="{% url 'delete_account' %}" method="POST" class="m-0">
                 {% csrf_token %}
-                <button type="submit" class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 rounded-xl transition shadow-sm shadow-rose-600/10">
-                    Confirm Deletion
-                </button>
+                <button type="submit" class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition shadow-sm">Confirm Deletion</button>
             </form>
         </div>
     </div>
 </div>
 
-</body>
-</html>
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-x-hidden overflow-y-auto" x-show="editReviewModalOpen" x-cloak>
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" x-show="editReviewModalOpen" x-transition @click="editReviewModalOpen = false"></div>
+    <div class="relative w-full max-w-lg bg-white border border-slate-100 shadow-2xl rounded-2xl p-6 transform transition-all" x-show="editReviewModalOpen" x-transition>
+        <h3 class="text-base font-bold text-slate-900 mb-4 border-b border-slate-100 pb-3">Modify Your Product Evaluation</h3>
+        
+        <form :action="editActionUrl" method="POST" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Rating Assignment</label>
+                <select name="rating" x-model="editRating" class="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all">
+                    <option value="5">⭐⭐⭐⭐⭐ (5 / 5)</option>
+                    <option value="4">⭐⭐⭐⭐ (4 / 5)</option>
+                    <option value="3">⭐⭐⭐ (3 / 5)</option>
+                    <option value="2">⭐⭐ (2 / 5)</option>
+                    <option value="1">⭐ (1 / 5)</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Written Review text</label>
+                <textarea name="text" x-model="editText" rows="4" required class="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all"></textarea>
+            </div>
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-50">
+                <button type="button" @click="editReviewModalOpen = false" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition">Cancel</button>
+                <button type="submit" class="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition shadow-sm">Save Review</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-x-hidden overflow-y-auto" x-show="deleteReviewModalOpen" x-cloak>
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" x-show="deleteReviewModalOpen" x-transition @click="deleteReviewModalOpen = false"></div>
+    <div class="relative w-full max-w-md bg-white border border-slate-100 shadow-2xl rounded-2xl p-6 transform transition-all" x-show="deleteReviewModalOpen" x-transition>
+        <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            </div>
+            <div>
+                <h3 class="text-base font-bold text-slate-900">Remove This Evaluation?</h3>
+                <p class="text-sm text-slate-500 mt-2 leading-relaxed">This action removes your evaluation rating from the calculation indexes. This cannot be undone.</p>
+            </div>
+        </div>
+        <div class="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-slate-50">
+            <button type="button" @click="deleteReviewModalOpen = false" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition">Cancel</button>
+            <form :action="deleteActionUrl" method="POST" class="m-0">
+                {% csrf_token %}
+                <button type="submit" class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition shadow-sm">Remove Permanently</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+</div>
+{% endblock %}

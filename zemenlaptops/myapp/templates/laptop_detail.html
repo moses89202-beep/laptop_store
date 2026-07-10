@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ laptop.brand }} {{ laptop.name }} | Zemen Laptops{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+
+    <nav class="flex mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
+        <a href="/" class="hover:text-amber-500">Home</a>
+        <span class="mx-2">/</span>
+        <a href="{% url 'laptop_catalog' %}" class="hover:text-amber-500">Catalog</a>
+        <span class="mx-2">/</span>
+        <span class="text-slate-900">{{ laptop.name }}</span>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <div class="lg:col-span-7 bg-white border border-slate-200 rounded-3xl p-8 flex items-center justify-center relative overflow-hidden group min-h-[500px]">
+            <div class="absolute inset-0 bg-slate-50/50 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+            {% if laptop.image %}
+                <img src="{{ laptop.image.url }}" alt="{{ laptop.name }}" class="max-h-[400px] object-contain transition-transform duration-700 group-hover:scale-105">
+            {% else %}
+                <i class="bi bi-laptop text-9xl text-slate-200"></i>
+            {% endif %}
+            
+            <span class="absolute top-6 left-6 bg-slate-950 text-amber-400 text-[10px] font-black tracking-widest uppercase px-3 py-1.5 rounded-full shadow-lg">
+                {{ laptop.brand }}
+            </span>
+        </div>
+
+        <div class="lg:col-span-5 space-y-6">
+            <div class="space-y-2">
+                <h1 class="text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
+                    {{ laptop.brand }} {{ laptop.name }}
+                </h1>
+                
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center text-amber-400">
+                        {% for i in "12345" %}
+                            {% if average_rating >= forloop.counter %}
+                                <i class="bi bi-star-fill text-sm"></i>
+                            {% elif average_rating >= forloop.counter|add:"-0.5" %}
+                                <i class="bi bi-star-half text-sm"></i>
+                            {% else %}
+                                <i class="bi bi-star text-sm"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="text-sm font-bold text-slate-900">{{ average_rating }}</span>
+                    <span class="text-xs text-slate-400 font-medium">({{ review_count }} Verified Reviews)</span>
+                </div>
+            </div>
+
+            <p class="text-slate-500 text-sm leading-relaxed">
+                {{ laptop.description }}
+            </p>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-50 border border-slate-100 p-4 rounded-2xl">
+                    <span class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Processor</span>
+                    <span class="text-sm font-bold text-slate-800">{{ laptop.cpu }}</span>
+                </div>
+                <div class="bg-slate-50 border border-slate-100 p-4 rounded-2xl">
+                    <span class="block text-[10px] uppercase font-bold text-slate-400 mb-1">RAM Size</span>
+                    <span class="text-sm font-bold text-slate-800">{{ laptop.ram }}</span>
+                </div>
+                <div class="bg-slate-50 border border-slate-100 p-4 rounded-2xl">
+                    <span class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Storage</span>
+                    <span class="text-sm font-bold text-slate-800">{{ laptop.storage }}</span>
+                </div>
+                <div class="bg-slate-50 border border-slate-100 p-4 rounded-2xl">
+                    <span class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Graphics</span>
+                    <span class="text-sm font-bold text-slate-800">{{ laptop.gpu|default:"Integrated Graphics" }}</span>
+                </div>
+            </div>
+
+            <div class="bg-slate-950 rounded-3xl p-6 shadow-xl relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl"></div>
+                
+                <div class="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div>
+                        <span class="text-amber-500 text-[10px] font-black uppercase tracking-widest">Pricing</span>
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-3xl font-black text-white">{{ laptop.price }}</span>
+                            <span class="text-xs font-bold text-slate-400 uppercase">ETB</span>
+                        </div>
+                    </div>
+
+                    {% if laptop.quantity > 0 %}
+                    <button data-id="{{ laptop.id }}" class="add-to-cart-btn w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-amber-500 px-8 py-4 text-sm font-black text-slate-950 shadow-lg transition-all hover:bg-amber-400 active:scale-95">
+                        <i class="bi bi-cart-plus-fill text-lg"></i>
+                        <span>ADD TO CART</span>
+                    </button>
+                    {% else %}
+                    <button disabled class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-800 px-8 py-4 text-sm font-black text-slate-500 cursor-not-allowed">
+                        OUT OF STOCK
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 pt-8">
+        
+        <div class="lg:col-span-7 space-y-8">
+            <h2 class="text-2xl font-black tracking-tight text-slate-950">Customer Experiences</h2>
+            
+            <div class="space-y-6">
+                {% for review in reviews %}
+                <div class="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-slate-950 flex items-center justify-center font-bold text-amber-500">
+                                {{ review.customer.user.username|slice:":1"|upper }}
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-sm font-bold text-slate-900">{{ review.customer.full_name|default:review.customer.user.username }}</h4>
+                                    <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">
+                                        <i class="bi bi-patch-check-fill"></i> Verified Buyer
+                                    </span>
+                                </div>
+                                <span class="text-[10px] text-slate-400 uppercase font-bold">{{ review.created_at|date:"M d, Y" }}</span>
+                            </div>
+                        </div>
+                        <div class="flex text-amber-400 text-xs">
+                            {% for i in "12345" %}
+                                <i class="bi bi-star{% if review.rating >= forloop.counter %}-fill{% endif %}"></i>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-600 leading-relaxed italic">
+                        "{{ review.text }}"
+                    </p>
+                </div>
+                {% empty %}
+                <div class="text-center py-16 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                    <i class="bi bi-chat-left-dots text-4xl text-slate-200 mb-4 block"></i>
+                    <p class="text-slate-400 text-sm font-medium">No reviews yet. Be the first to share your thoughts!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="lg:col-span-5">
+            <div class="sticky top-24">
+                {% if can_review %}
+                <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm space-y-6">
+                    <div class="space-y-1">
+                        <h3 class="text-xl font-black text-slate-950">Share Your Experience</h3>
+                        <p class="text-xs text-slate-500 font-medium">Since your order has been delivered, your feedback helps the community.</p>
+                    </div>
+
+                    <form method="post" class="space-y-4">
+                        {% csrf_token %}
+                        
+                        <div>
+                            <label class="text-[10px] font-black uppercase text-slate-400 mb-2 block">Your Rating</label>
+                            <select name="rating" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all">
+                                <option value="5">⭐⭐⭐⭐⭐ - Excellent</option>
+                                <option value="4">⭐⭐⭐⭐ - Very Good</option>
+                                <option value="3">⭐⭐⭐ - Good</option>
+                                <option value="2">⭐⭐ - Fair</option>
+                                <option value="1">⭐ - Poor</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="text-[10px] font-black uppercase text-slate-400 mb-2 block">Your Thoughts</label>
+                            <textarea name="text" rows="4" required placeholder="What do you love most about this laptop?" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full bg-slate-950 text-white font-black py-4 rounded-2xl shadow-lg hover:bg-slate-800 transition-all active:scale-[0.98]">
+                            POST REVIEW
+                        </button>
+                    </form>
+                </div>
+                
+                {% elif not request.user.is_authenticated %}
+                <div class="bg-slate-900 rounded-3xl p-8 text-center space-y-4">
+                    <i class="bi bi-person-lock text-3xl text-amber-500"></i>
+                    <h3 class="text-white font-black">Want to leave a review?</h3>
+                    <p class="text-xs text-slate-400 font-medium leading-relaxed">Please log in to your account and verify your purchase.</p>
+                    <a href="{% url 'login' %}" class="inline-block w-full py-3 bg-amber-500 text-slate-950 rounded-xl font-black text-xs uppercase tracking-widest">Login to Account</a>
+                </div>
+
+                {% else %}
+                <div class="bg-amber-50/60 border border-amber-200/80 rounded-3xl p-6 text-center space-y-3">
+                    <div class="w-12 h-12 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto text-amber-600">
+                        <i class="bi bi-info-circle-fill text-xl"></i>
+                    </div>
+                    <p class="text-xs font-bold text-amber-900 leading-relaxed px-2">
+                        Your order needs to be fulfilled before you can leave a review.
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="pt-12 border-t border-slate-100">
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-2xl font-black text-slate-950">Similar Products</h2>
+            <a href="{% url 'laptop_catalog' %}" class="text-[10px] font-black uppercase tracking-widest text-amber-600 hover:text-amber-700">View All Models →</a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for item in recommended %}
+            <div class="group bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-500">
+                <a href="{% url 'laptop_detail' item.id %}" class="h-48 bg-slate-50 flex items-center justify-center p-6 relative overflow-hidden block">
+                    {% if item.image %}
+                    <img src="{{ item.image.url }}" class="max-h-full object-contain transition-transform duration-500 group-hover:scale-110">
+                    {% endif %}
+                    <span class="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2 py-1 rounded-md text-[9px] font-black text-slate-950 shadow-sm uppercase border border-slate-100">
+                        {{ item.brand }}
+                    </span>
+                </a>
+                <div class="p-5">
+                    <a href="{% url 'laptop_detail' item.id %}" class="block mb-4">
+                        <h3 class="text-xs font-black text-slate-900 truncate group-hover:text-amber-500 transition-colors">{{ item.name }}</h3>
+                    </a>
+                    <div class="flex items-center justify-between">
+                        <div class="flex flex-col">
+                            <span class="text-xs text-slate-400 font-bold uppercase tracking-tighter">{{ item.ram }} / {{ item.storage }}</span>
+                            <span class="text-sm font-black text-slate-950">{{ item.price }} <small class="text-[10px] text-slate-400">ETB</small></span>
+                        </div>
+                        <a href="{% url 'laptop_detail' item.id %}" class="bg-slate-950 text-white p-2.5 rounded-xl hover:bg-amber-500 hover:text-slate-950 transition-colors shadow-lg">
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const cartButton = document.querySelector('.add-to-cart-btn');
+    if (cartButton) {
+        cartButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            const productId = String(cartButton.getAttribute('data-id'));
+            let cart = JSON.parse(localStorage.getItem('zemen_cart')) || [];
+            
+            cart.push(productId);
+            localStorage.setItem('zemen_cart', JSON.stringify(cart));
+
+            if (window.updateGlobalNavbarCartCount) {
+                window.updateGlobalNavbarCartCount();
+            }
+
+            // Visual Feedback
+            const originalContent = cartButton.innerHTML;
+            cartButton.classList.remove('bg-amber-500', 'text-slate-950');
+            cartButton.classList.add('bg-emerald-500', 'text-white', 'pointer-events-none');
+            cartButton.innerHTML = `<i class="bi bi-check-lg text-lg"></i><span>ADDED TO CART</span>`;
+
+            setTimeout(() => {
+                cartButton.classList.add('bg-amber-500', 'text-slate-950');
+                cartButton.classList.remove('bg-emerald-500', 'text-white', 'pointer-events-none');
+                cartButton.innerHTML = originalContent;
+            }, 2000);
+        });
+    }
+});
+</script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+{% endblock %}

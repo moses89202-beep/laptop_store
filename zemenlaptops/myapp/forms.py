@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from .models import Customer
+from .models import Customer, Review
 
 
 class CustomerSignupForm(UserCreationForm):
@@ -80,3 +80,13 @@ class CustomerProfileForm(forms.ModelForm):
         if commit:
             profile.save()
         return profile
+
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ['rating', 'text']
+
+
+
+
+
