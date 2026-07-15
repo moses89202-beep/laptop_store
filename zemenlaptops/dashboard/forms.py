@@ -33,4 +33,8 @@ class CustomerProfileForm(forms.ModelForm):
 class OrderForm(forms.ModelForm):
     class Meta:
         model = Order
-        fields = ['delivery_status', 'payment_status']
+        fields = [
+            'delivery_method', 
+            'delivery_status', 
+            'payment_status'
+        ]

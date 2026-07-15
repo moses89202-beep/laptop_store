@@ -8,56 +8,88 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* Sidebar Link Styles */
+        .sidebar-link {
+            color: #94a3b8; /* text-slate-400 */
+            transition: all 0.2s ease-in-out;
+        }
+
+        .sidebar-link .sidebar-icon {
+            color: #64748b; /* text-slate-500 */
+            transition: all 0.2s ease-in-out;
+        }
+
+        .sidebar-link:hover {
+            background-color: #0f172a; /* bg-slate-900 */
+            color: white;
+        }
+
+        .sidebar-link:hover .sidebar-icon {
+            color: #f59e0b; /* text-amber-500 */
+        }
+
+        /* Active Link */
+        .sidebar-link.active {
+            background-color: #0f172a; /* bg-slate-900 */
+            color: white;
+        }
+
+        .sidebar-link.active .sidebar-icon {
+            color: #f59e0b; /* text-amber-500 */
         }
     </style>
 </head>
 
-<body class="flex min-h-full bg-[#f8fafc] text-slate-800 antialiased overflow-x-hidden">
+<body class="bg-[#f8fafc] text-slate-800 antialiased overflow-x-hidden min-h-screen">
 
-    <div class="flex w-full min-h-screen relative">
+    <div class="grid grid-cols-1 lg:grid-cols-[16rem_1fr] w-full min-h-screen relative">
         
-        <div id="sidebar-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-20 hidden lg:hidden transition-opacity duration-300 opacity-0"></div>
+        <div id="sidebar-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-30 hidden lg:hidden transition-opacity duration-300 opacity-0"></div>
 
-        <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-slate-950 text-slate-200 flex flex-col shrink-0 border-r border-slate-900 z-30 transform -translate-x-full lg:translate-x-0 lg:static lg:flex transition-transform duration-300 ease-in-out">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-slate-950 text-slate-200 flex flex-col shrink-0 border-r border-slate-900 z-40 transform -translate-x-full lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen transition-transform duration-300 ease-in-out">
             <div class="p-6 border-b border-slate-900 flex items-center justify-between lg:justify-start gap-3">
                 <div class="flex items-center gap-3">
                     <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500 text-slate-950 shadow-sm shadow-amber-500/20">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 5.25A2.25 2.25 0 016.75 3h10.5a2.25 2.25 0 012.25 2.25v9H4.5v-9z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75h19.5l-1.5-4.5H3.75l-1.5 4.5z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17.25h4.5" />
+                            <path stroke-linecap='round' stroke-linejoin='round' d='M4.5 5.25A2.25 2.25 0 016.75 3h10.5a2.25 2.25 0 012.25 2.25v9H4.5v-9z'/>
+                            <path stroke-linecap='round' stroke-linejoin='round' d='M2.25 18.75h19.5l-1.5-4.5H3.75l-1.5 4.5z'/>
+                            <path stroke-linecap='round' stroke-linejoin='round' d='M9.75 17.25h4.5'/>
                         </svg>
                     </div>
                     <span class="font-extrabold text-sm tracking-wider text-white">ZEMEN ADMIN</span>
                 </div>
-                <button id="close-sidebar" class="lg:hidden h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-900 transition">
+                <button id="close-sidebar" class="lg:hidden h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-900 transition cursor-pointer">
                     <i class="fa-solid fa-xmark text-base"></i>
                 </button>
             </div>
 
             <nav class="flex-1 p-4 space-y-1.5 text-xs font-bold uppercase tracking-wider overflow-y-auto">
-                <a href="{% url 'dashboard' %}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-white transition-all">
-                    <i class="fa-solid fa-chart-pie w-5 text-slate-500 hover:text-amber-500 text-sm"></i>
+                <a href="{% url 'dashboard' %}" class="sidebar-link flex items-center gap-3 px-4 py-3.5 rounded-xl">
+                    <i class="fa-solid fa-chart-pie w-5 sidebar-icon text-sm"></i>
                     <span>Home Metrics</span>
                 </a>
 
-                <a href="{% url 'laptop_manage' %}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-white transition-all">
-                    <i class="fa-solid fa-laptop w-5 text-slate-500 hover:text-amber-500 text-sm"></i>
+                <a href="{% url 'laptop_manage' %}" class="sidebar-link flex items-center gap-3 px-4 py-3.5 rounded-xl">
+                    <i class="fa-solid fa-laptop w-5 sidebar-icon text-sm"></i>
                     <span>Inventory</span>
                 </a>
 
-                <a href="{% url 'user_manage' %}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-white transition-all">
-                    <i class="fa-solid fa-users w-5 text-slate-500 hover:text-amber-500 text-sm"></i>
+                <a href="{% url 'user_manage' %}" class="sidebar-link flex items-center gap-3 px-4 py-3.5 rounded-xl">
+                    <i class="fa-solid fa-users w-5 sidebar-icon text-sm"></i>
                     <span>Customers</span>
                 </a>
 
-                <a href="{% url 'order_manage' %}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-white transition-all">
-                    <i class="fa-solid fa-basket-shopping w-5 text-slate-500 hover:text-amber-500 text-sm"></i>
+                <a href="{% url 'order_manage' %}" class="sidebar-link flex items-center gap-3 px-4 py-3.5 rounded-xl">
+                    <i class="fa-solid fa-basket-shopping w-5 sidebar-icon text-sm"></i>
                     <span>Orders Ledger</span>
                 </a>
             </nav>
@@ -67,30 +99,25 @@
             </div>
         </aside>
 
-        <main class="flex-grow flex flex-col min-w-0 w-full">
+        <main class="flex flex-col min-w-0 w-full min-h-screen lg:col-start-2">
             
-            <header class="bg-white/80 backdrop-blur-md border-b border-slate-200/80 h-16 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-10 shadow-xs">
+            <header class="bg-white/80 backdrop-blur-md border-b border-slate-200/80 h-16 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-10 shadow-sm">
                 <div class="flex items-center gap-3">
-                    <button id="open-sidebar" class="lg:hidden h-9 w-9 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:text-slate-900 shadow-xs transition">
+                    <button id="open-sidebar" class="lg:hidden h-9 w-9 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:text-slate-900 shadow-xs transition cursor-pointer">
                         <i class="fa-solid fa-bars-staggered text-sm"></i>
                     </button>
-                    <div class="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-slate-900 truncate max-w-[180px] sm:max-w-none">
-                        System Management Suite
-                    </div>
                 </div>
-                <div class="flex items-center gap-2 sm:gap-3">
-                    <span class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 hidden sm:inline">Administrator</span>
-                    <div class="h-8 w-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-extrabold text-xs shadow-sm shadow-amber-500/15">
-                        A
-                    </div>
+                <div class="flex items-center">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-700 bg-slate-100 border border-slate-200/60 px-3 py-1.5 rounded-xl">
+                        {{ request.user.username }}
+                    </span>
                 </div>
             </header>
 
-            <div class="p-4 sm:p-8 flex-1 overflow-y-auto">
+            <div class="p-4 sm:p-8 flex-1">
                 {% block dashboard_content %}
                 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                    
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
                     <div class="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-sm flex items-center justify-between relative overflow-hidden">
                         <div class="absolute inset-x-6 top-0 h-12 bg-amber-400/5 blur-xl pointer-events-none"></div>
                         <div class="relative z-10">
@@ -134,12 +161,55 @@
                             <i class="fa-solid fa-star text-sm"></i>
                         </div>
                     </div>
+                </div>
 
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                    <div class="rounded-2xl border border-emerald-200/60 bg-emerald-50/30 p-5 flex items-center gap-4">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-md shadow-emerald-500/20">
+                            <i class="fa-solid fa-money-bill-trend-up text-base"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700/80 mb-0.5">Total Liquid Revenue</p>
+                            <h4 class="text-xl sm:text-2xl font-black text-slate-900">ETB {{ total_revenue|floatformat:2 }}</h4>
+                        </div>
+                    </div>
+
+                    <div class="rounded-2xl border border-amber-200/60 bg-amber-50/30 p-5 flex items-center gap-4">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500 text-white shadow-md shadow-amber-500/20">
+                            <i class="fa-solid fa-hourglass-half text-base"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-amber-700/80 mb-0.5">Pipeline (Pending Escrow)</p>
+                            <h4 class="text-xl sm:text-2xl font-black text-slate-900">ETB {{ pending_revenue|floatformat:2 }}</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 sm:mb-8">
+                    <div class="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm flex flex-col justify-between">
+                        <div class="mb-4">
+                            <h2 class="text-sm font-extrabold tracking-wide text-slate-900 uppercase">Revenue & Volume Timeline</h2>
+                            <p class="text-xs text-slate-400 font-medium">Monthly configuration of completed sales receipts.</p>
+                        </div>
+                        <div class="relative w-full h-64 sm:h-72">
+                            <canvas id="salesTimelineChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm flex flex-col justify-between">
+                        <div class="mb-4">
+                            <h2 class="text-sm font-extrabold tracking-wide text-slate-900 uppercase">Inventory Shares</h2>
+                            <p class="text-xs text-slate-400 font-medium">Units availability mapped by specific manufacturer brand.</p>
+                        </div>
+                        <div class="relative w-full h-64 sm:h-72 flex justify-center items-center">
+                            <canvas id="brandDistributionChart"></canvas>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
-                    <h2 class="text-base font-extrabold tracking-wide text-slate-900 mb-4">Recent Order Snapshot</h2>
-                    <div class="overflow-x-auto mx--4 sm:-mx-6 -mb-4 sm:-mb-6 block border-t border-slate-100">
+                    <h2 class="text-sm font-extrabold tracking-wide text-slate-900 uppercase mb-4">Recent Order Snapshot</h2>
+                    <div class="overflow-x-auto -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 block border-t border-slate-100">
                         <table class="w-full text-left text-sm text-slate-600 min-w-[600px] table-auto">
                             <thead>
                                 <tr class="bg-slate-50 border-b border-slate-200/80 text-slate-500 uppercase font-extrabold text-[10px] tracking-wider">
@@ -153,8 +223,14 @@
                                 {% for order in recent_orders %}
                                 <tr class="hover:bg-slate-50/50 transition">
                                     <td class="py-3.5 px-4 sm:px-6 font-mono text-xs text-slate-900 font-semibold">{{ order.tx_ref|truncatechars:15 }}</td>
-                                    <td class="py-3.5 px-4 sm:px-6 font-bold text-slate-800">{{ order.customer }}</td>
-                                    <td class="py-3.5 px-4 sm:px-6 font-extrabold text-slate-900">ETB {{ order.total_amount }}</td>
+                                    <td class="py-3.5 px-4 sm:px-6 font-bold text-slate-800">
+                                        {% if order.customer.get_full_name %}
+                                            {{ order.customer.get_full_name }}
+                                        {% else %}
+                                            {{ order.customer.username }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-3.5 px-4 sm:px-6 font-extrabold text-slate-900">ETB {{ order.total_amount|floatformat:2 }}</td>
                                     <td class="py-3.5 px-4 sm:px-6">
                                         <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider
                                             {% if order.payment_status == 'completed' %} bg-emerald-50 text-emerald-700 border border-emerald-100
@@ -178,31 +254,183 @@
 
                 {% endblock dashboard_content %}
             </div>
-
         </main>
     </div>
 
     <script>
+        /* ============================================
+           SIDEBAR TOGGLE CONTROL ENGINE
+        ============================================ */
         const openBtn = document.getElementById('open-sidebar');
         const closeBtn = document.getElementById('close-sidebar');
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebar-overlay');
 
-        function toggleSidebar(open) {
-            if (open) {
-                sidebar.classList.remove('-translate-x-full');
-                overlay.classList.remove('hidden');
-                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
-            } else {
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('opacity-0');
-                setTimeout(() => overlay.classList.add('hidden'), 300);
-            }
+        function openSidebar() {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                overlay.classList.add('opacity-100');
+            }, 20);
+            document.body.classList.add('overflow-hidden');
         }
 
-        openBtn.addEventListener('click', () => toggleSidebar(true));
-        closeBtn.addEventListener('click', () => toggleSidebar(false));
-        overlay.addEventListener('click', () => toggleSidebar(false));
+        function closeSidebar() {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.remove('opacity-100');
+            overlay.classList.add('opacity-0');
+            document.body.classList.remove('overflow-hidden');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 300);
+        }
+
+        openBtn?.addEventListener('click', openSidebar);
+        closeBtn?.addEventListener('click', closeSidebar);
+        overlay?.addEventListener('click', closeSidebar);
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') { closeSidebar(); }
+        });
+
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 1024) {
+                closeSidebar();
+                document.body.classList.remove('overflow-hidden');
+            }
+        });
+
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 1024) { closeSidebar(); }
+            });
+        });
+
+        /* ============================================
+           ACTIVE LINK HIGHLIGHTING
+        ============================================ */
+        (function highlightActiveLink() {
+            const links = document.querySelectorAll('.sidebar-link');
+            const currentPath = window.location.pathname;
+
+            const sortedLinks = Array.from(links).sort((a, b) => {
+                return b.getAttribute('href').length - a.getAttribute('href').length;
+            });
+
+            let matched = false;
+            sortedLinks.forEach(link => {
+                const linkPath = new URL(link.href, window.location.origin).pathname;
+                if (!matched && currentPath.startsWith(linkPath)) {
+                    link.classList.add('active');
+                    matched = true;
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            if (!matched && links.length > 0) {
+                links[0].classList.add('active');
+            }
+        })();
+
+        /* ============================================
+           LIVE DYNAMIC CHART.JS DATA LAYER
+        ============================================ */
+        // Escape sequence safety parsing using built-in template filters
+        const salesLabels = {{ sales_labels|safe }};
+        const salesTotals = {{ sales_totals|safe }};
+        const orderCounts = {{ order_counts|safe }};
+        
+        const brandLabels = {{ brand_labels|safe }};
+        const brandStock = {{ brand_stock|safe }};
+
+        // 1. Double Axis Line Timeline Visual Matrix
+        const ctxTimeline = document.getElementById('salesTimelineChart')?.getContext('2d');
+        if (ctxTimeline) {
+            new Chart(ctxTimeline, {
+                type: 'line',
+                data: {
+                    labels: salesLabels,
+                    datasets: [
+                        {
+                            label: 'Revenue (ETB)',
+                            data: salesTotals,
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245, 158, 11, 0.05)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.35,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Orders Volume',
+                            data: orderCounts,
+                            borderColor: '#0f172a',
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointStyle: 'rectRot',
+                            tension: 0.1,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { family: 'Plus Jakarta Sans', weight: '600', size: 11 } } }
+                    },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'Currency Value (ETB)', font: { weight: 'bold', family: 'Plus Jakarta Sans' } }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: { drawOnChartArea: false },
+                            title: { display: true, text: 'Total Volume', font: { weight: 'bold', family: 'Plus Jakarta Sans' } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 2. Segmented Distribution Circular Doughnut Chart
+        const ctxDoughnut = document.getElementById('brandDistributionChart')?.getContext('2d');
+        if (ctxDoughnut) {
+            new Chart(ctxDoughnut, {
+                type: 'doughnut',
+                data: {
+                    labels: brandLabels,
+                    datasets: [{
+                        data: brandStock,
+                        backgroundColor: [
+                            '#0f172a', '#f59e0b', '#10b981', '#3b82f6', '#6366f1', '#ec4899', '#8b5cf6'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, font: { family: 'Plus Jakarta Sans', weight: '600', size: 10 } }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
     </script>
 </body>
 </html>

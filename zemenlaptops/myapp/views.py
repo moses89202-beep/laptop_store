@@ -1,4 +1,3 @@
-from .models import *
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect, get_object_or_404
@@ -6,8 +5,12 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from .forms import *
-from django.db.models import Sum, Count, Q, IntegerField
+from django.db.models import FloatField, Sum, Count, Q, IntegerField, Avg
 from django.db.models.functions import Coalesce
+from .models import *
+from app2.models import OrderItem
+from decimal import Decimal
+from django.db.models.functions import Cast
 
 
 
@@ -49,127 +52,94 @@ def home(request):
         'laptops': laptops
     })
 
-from django.core.paginator import Paginator
-from django.db.models import Q, Avg, Count
-from .models import Laptop
 
 from django.shortcuts import render
-from django.db.models import Avg, Count, Max, Q
-from django.core.paginator import Paginator
-from .models import Laptop  # Adjust this import based on your app structure
-from django.shortcuts import render
-from django.db.models import Avg, Count, Q
-from django.core.paginator import Paginator
-from .models import Laptop  # Adjust this import based on your app structure
-
-from django.shortcuts import render
-from django.db.models import Avg, Count, Q, FloatField
-from django.db.models.functions import Cast
-from django.core.paginator import Paginator
-from .models import Laptop # Adjust this import depending on your app structure
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Avg, Count
+from .models import Laptop  # Adjust this import to match your app structure
 
 def laptop_catalog(request):
-    queryset = Laptop.objects.all()
-
-    # ✅ Force avg_rating to be a FloatField to prevent Decimal-to-float comparison failures in Django templates
-    queryset = queryset.annotate(
-        avg_rating=Cast(Avg('reviews__rating'), output_field=FloatField()),
+    # 1. Base Queryset with Annotations for Ratings
+    queryset = Laptop.objects.annotate(
+        avg_rating=Avg('reviews__rating'),  # Adjust 'reviews__rating' based on your Review model relation
         review_count=Count('reviews')
-    ).order_by('-created_at')
+    )
 
+    # 2. Extract Query Parameters
     search_query = request.GET.get('search', '').strip()
+    brand_filter = request.GET.get('brand', '').strip()
+    ram_filter = request.GET.get('ram', '').strip()
+    storage_filter = request.GET.get('storage', '').strip()
+    gpu_filter = request.GET.get('gpu', '').strip()
+    os_filter = request.GET.get('os', '').strip()
+    in_stock_filter = request.GET.get('in_stock', '').strip()
+    sort_by = request.GET.get('sort', 'date_desc').strip()
 
-    if search_query and search_query != 'None':
-        queryset = queryset.filter(
-            Q(name__icontains=search_query) |
-            Q(brand__icontains=search_query) |
-            Q(description__icontains=search_query) |
-            Q(cpu__icontains=search_query) |
-            Q(gpu__icontains=search_query) |
-            Q(ram__icontains=search_query) |
-            Q(storage__icontains=search_query) |
-            Q(os__icontains=search_query)
-        )
-
-    get_clean = lambda key: (
-        request.GET.get(key, '').strip() or None
-    ) if request.GET.get(key, '').strip() not in ['', 'None'] else None
-
-    brand = get_clean('brand')
-    ram = get_clean('ram')
-    cpu = get_clean('cpu')
-    gpu = get_clean('gpu')
-    os_system = get_clean('os')
-    storage = get_clean('storage')
-    screen_size = get_clean('screen_size')
-    max_price = get_clean('max_price')
-    in_stock = request.GET.get('in_stock') == '1'
-
-    if brand:
-        queryset = queryset.filter(brand__iexact=brand)
-
-    if ram:
-        queryset = queryset.filter(ram__icontains=ram)
-
-    if cpu:
-        queryset = queryset.filter(cpu__icontains=cpu)
-
-    if gpu:
-        queryset = queryset.filter(gpu__icontains=gpu)
-
-    if os_system:
-        queryset = queryset.filter(os__icontains=os_system)
-
-    if storage:
-        queryset = queryset.filter(storage__icontains=storage)
-
-    if screen_size:
-        queryset = queryset.filter(screen_size=screen_size)
-
-    if max_price:
-        queryset = queryset.filter(price__lte=max_price)
-
-    if in_stock:
+    # 3. Apply Filters
+    if search_query:
+        queryset = queryset.filter(name__icontains=search_query) | queryset.filter(brand__icontains=search_query)
+    if brand_filter:
+        queryset = queryset.filter(brand=brand_filter)
+    if ram_filter:
+        queryset = queryset.filter(ram=ram_filter)
+    if storage_filter:
+        queryset = queryset.filter(storage=storage_filter)
+    if gpu_filter:
+        queryset = queryset.filter(gpu=gpu_filter)
+    if os_filter:
+        queryset = queryset.filter(os=os_filter)
+    if in_stock_filter == '1':
         queryset = queryset.filter(quantity__gt=0)
 
-    # ✅ Sorting
-    sort_by = get_clean('sort')
-
-    if sort_by == 'price_asc':
+    # 4. Apply Sorting
+    if sort_by == 'date_asc':
+        queryset = queryset.order_by('created_at')  # Adjust field names to match your model
+    elif sort_by == 'price_asc':
         queryset = queryset.order_by('price')
     elif sort_by == 'price_desc':
         queryset = queryset.order_by('-price')
-    elif sort_by == 'date_asc':
-        queryset = queryset.order_by('created_at')
-    elif sort_by == 'date_desc':
-        queryset = queryset.order_by('-created_at')
     elif sort_by == 'rating_desc':
-        queryset = queryset.order_by('-avg_rating', '-review_count')
+        queryset = queryset.order_by('-avg_rating')
+    else:
+        queryset = queryset.order_by('-created_at')  # Default: Newest Arrivals
 
-    # ✅ Distinct filters
-    distinct_brands = Laptop.objects.values_list('brand', flat=True).distinct().order_by('brand')
-    distinct_rams = Laptop.objects.values_list('ram', flat=True).distinct().order_by('ram')
-    distinct_cpus = Laptop.objects.values_list('cpu', flat=True).distinct().order_by('cpu')
-    distinct_gpus = Laptop.objects.exclude(gpu__isnull=True).exclude(gpu='').values_list('gpu', flat=True).distinct().order_by('gpu')
-    distinct_storage = Laptop.objects.values_list('storage', flat=True).distinct().order_by('storage')
-    distinct_screens = Laptop.objects.values_list('screen_size', flat=True).distinct().order_by('screen_size')
-    distinct_os = Laptop.objects.exclude(os__isnull=True).exclude(os='').values_list('os', flat=True).distinct().order_by('os')
+    # 5. Dynamically Fetch Distinct Options for Sidebar Dropdowns
+    brands = Laptop.objects.exclude(brand__isnull=True).exclude(brand="").values_list('brand', flat=True).distinct().order_by('brand')
+    rams = Laptop.objects.exclude(ram__isnull=True).exclude(ram="").values_list('ram', flat=True).distinct().order_by('ram')
+    storage_options = Laptop.objects.exclude(storage__isnull=True).exclude(storage="").values_list('storage', flat=True).distinct().order_by('storage')
+    gpus = Laptop.objects.exclude(gpu__isnull=True).exclude(gpu="").values_list('gpu', flat=True).distinct().order_by('gpu')
+    os_options = Laptop.objects.exclude(os__isnull=True).exclude(os="").values_list('os', flat=True).distinct().order_by('os')
 
-    # ✅ Pagination
-    paginator = Paginator(queryset, 20)
+    # 6. Pagination (e.g., 9 laptops per page)
+    paginator = Paginator(queryset, 9)
     page_number = request.GET.get('page', 1)
-    page_obj = paginator.get_page(page_number)
+    
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
 
+    # 7. Context Construct
     context = {
         'page_obj': page_obj,
-        'brands': distinct_brands,
-        'rams': distinct_rams,
-        'cpus': distinct_cpus,
-        'gpus': distinct_gpus,
-        'storage_options': distinct_storage,
-        'screen_sizes': distinct_screens,
-        'os_options': distinct_os,
-        'in_stock': in_stock,
+        
+        # Dropdown Option Lists
+        'brands': brands,
+        'rams': rams,
+        'storage_options': storage_options,
+        'gpus': gpus,
+        'os_options': os_options,
+        
+        # State Preservation
+        'selected_brand': brand_filter,
+        'selected_ram': ram_filter,
+        'selected_storage': storage_filter,
+        'selected_gpu': gpu_filter,
+        'selected_os': os_filter,
+        'in_stock': in_stock_filter == '1',
+        'selected_sort': sort_by,
     }
 
     return render(request, 'catalog.html', context)
@@ -249,12 +219,6 @@ def logout_view(request):
     return redirect('home')
 
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from .models import Customer, Review
-from .forms import ReviewForm, CustomerProfileForm  # Assuming CustomerProfileForm is imported here
-
 @login_required
 def profile_view(request):
     customer_profile = get_object_or_404(Customer, user=request.user)
@@ -268,7 +232,6 @@ def profile_view(request):
     else:
         form = CustomerProfileForm(instance=customer_profile, user=request.user)
 
-    # Fetch user's reviews along with laptop data to avoid N+1 queries
     user_reviews = Review.objects.filter(customer=customer_profile).select_related('laptop')
 
     return render(request, 'account/profile.html', {
@@ -277,10 +240,10 @@ def profile_view(request):
         'reviews': user_reviews,
     })
 
+
 @login_required
 def update_review(request, review_id):
     customer_profile = get_object_or_404(Customer, user=request.user)
-    # Ensure users can only update their own reviews
     review = get_object_or_404(Review, id=review_id, customer=customer_profile)
     
     if request.method == 'POST':
@@ -292,10 +255,10 @@ def update_review(request, review_id):
             messages.error(request, "There was an error updating your review.")
     return redirect('profile')
 
+
 @login_required
 def delete_review(request, review_id):
     customer_profile = get_object_or_404(Customer, user=request.user)
-    # Ensure users can only delete their own reviews
     review = get_object_or_404(Review, id=review_id, customer=customer_profile)
     
     if request.method == 'POST':
@@ -316,29 +279,14 @@ def delete_account_view(request):
     return redirect('profile')
 
 
-# views.py
-from django.shortcuts import render, get_object_or_404, redirect
-from django.db.models import Avg, Count, Q
-from .models import Laptop, Review
-from app2.models import Order, OrderItem
-from .forms import ReviewForm
-
-from django.shortcuts import render, get_object_or_404, redirect
-from django.db.models import Avg, Count, Q
-from decimal import Decimal  # ✅ Required to fix the multiplication error
-from .models import Laptop, Review
-from django.contrib import messages # Import messages for debugging
 
 def laptop_detail(request, pk):
     laptop = get_object_or_404(Laptop, pk=pk)
     reviews = laptop.reviews.select_related('customer__user')
-
-    # Rating statistics
     rating_data = reviews.aggregate(average=Avg('rating'), count=Count('id'))
     average_rating = round(rating_data['average'] or 0, 1)
     review_count = rating_data['count']
 
-    # Recommended Logic
     has_gpu = laptop.gpu is not None and laptop.gpu != ""
     price_range_min = laptop.price * Decimal('0.8')
     price_range_max = laptop.price * Decimal('1.2')
@@ -352,23 +300,17 @@ def laptop_detail(request, pk):
         recommended = recommended.filter(Q(gpu__isnull=True) | Q(gpu__exact=''))
     recommended = recommended[:4]
 
-    # ✅ IMPROVED REVIEW PERMISSION LOGIC
     can_review = False
     
     if request.user.is_authenticated:
-        # 1. Safely get the customer profile
         customer = getattr(request.user, 'customer_profile', None)
         
         if customer:
-            # 2. Check for delivered items
-            # We look for ANY order that contains this laptop and is marked delivered/picked_up
             valid_orders = OrderItem.objects.filter(
                 laptop=laptop,
                 order__customer=customer,
                 order__delivery_status__in=['delivered', 'picked_up']
             )
-
-            # 3. Check if already reviewed
             already_reviewed = Review.objects.filter(
                 customer=customer, 
                 laptop=laptop
@@ -376,16 +318,10 @@ def laptop_detail(request, pk):
 
             if valid_orders.exists() and not already_reviewed:
                 can_review = True
-            
-            # --- DEBUGGING (Remove this after fixing) ---
-            # if not valid_orders.exists():
-            #    print(f"DEBUG: No delivered orders found for {request.user.username}")
-            # if already_reviewed:
-            #    print(f"DEBUG: {request.user.username} already reviewed this.")
         else:
             print(f"DEBUG: User {request.user.username} has no Customer Profile attached.")
 
-    # Handle Review Submit
+
     if request.method == "POST" and can_review:
         form = ReviewForm(request.POST)
         if form.is_valid():

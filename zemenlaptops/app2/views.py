@@ -6,121 +6,189 @@ from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
 from django.db import transaction
 from django.http import JsonResponse
-from django.shortcuts import render, redirect, get_object_or_404
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from django.shortcuts import render, get_object_or_404
 from .models import Laptop, Order, OrderItem, Customer
+
 
 def generate_receipt_pdf(order):
     from io import BytesIO
-    buffer = BytesIO()
-    
-    doc = SimpleDocTemplate(
-        buffer, 
-        pagesize=letter,
-        rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36
+    from reportlab.platypus import (
+        SimpleDocTemplate, Paragraph, Spacer,
+        Table, TableStyle
     )
-    
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.units import inch
+
+    buffer = BytesIO()
+
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        rightMargin=40, leftMargin=40,
+        topMargin=40, bottomMargin=40
+    )
+
     styles = getSampleStyleSheet()
 
-    title_style = ParagraphStyle(
-        'StoreTitle', 
-        parent=styles['Heading1'], 
-        textColor=colors.HexColor('#1A365D'), 
-        fontSize=24, 
-        spaceAfter=6
+    SLATE_900 = colors.HexColor("#0f172a")
+    SLATE_600 = colors.HexColor("#475569")
+    SLATE_400 = colors.HexColor("#94a3b8")
+    BG_LIGHT = colors.HexColor("#f8fafc")
+    CARD_BG = colors.HexColor("#f1f5f9")
+    AMBER = colors.HexColor("#f59e0b")
+    WHITE = colors.white
+
+
+    logo_style = ParagraphStyle(
+        'LogoStyle',
+        parent=styles['Normal'],
+        fontSize=18,
+        textColor=SLATE_900,
+        spaceAfter=4,
     )
-    invoice_title_style = ParagraphStyle(
-        'InvoiceTitle', 
-        parent=styles['Normal'], 
-        alignment=2, # Right aligned
-        fontSize=18, 
-        textColor=colors.HexColor('#4A5568')
+
+    invoice_style = ParagraphStyle(
+        'InvoiceStyle',
+        parent=styles['Normal'],
+        fontSize=16,
+        textColor=SLATE_600,
+        alignment=2  # Right
     )
-    meta_style = ParagraphStyle(
-        'MetaStyle', 
-        parent=styles['Normal'], 
-        fontSize=10, 
-        textColor=colors.HexColor('#4A5568'), 
+
+    label_style = ParagraphStyle(
+        'LabelStyle',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=SLATE_400,
+    )
+
+    normal_style = ParagraphStyle(
+        'NormalStyle',
+        parent=styles['Normal'],
+        fontSize=10,
+        textColor=SLATE_600,
         leading=14
     )
-    
-    story = []
-    
-    header_data = [
-        [
-            Paragraph("<b>Zemen Laptops</b>", title_style), 
-            Paragraph(f"<b>INVOICE</b><br/>Ref: {order.tx_ref[:8].upper()}", invoice_title_style)
-        ]
-    ]
-    header_table = Table(header_data, colWidths=[270, 270])
-    header_table.setStyle(TableStyle([('VALIGN', (0,0), (-1,-1), 'TOP')]))
-    story.append(header_table)
-    story.append(Spacer(1, 15))
-    cust_name = order.customer.full_name or order.customer.user.username
-    logistics_info = f"<b>Delivery Method:</b> {order.get_delivery_method_display()}<br/>"
-    if order.delivery_method == 'delivery':
-        logistics_info += f"<b>Delivery Status:</b> {order.get_delivery_status_display()}"
-    else:
-        logistics_info += f"<b>Pickup Status:</b> {order.get_delivery_status_display()}"
 
-    meta_data = [
+    total_style = ParagraphStyle(
+        'TotalStyle',
+        parent=styles['Normal'],
+        fontSize=12,
+        textColor=SLATE_900,
+    )
+
+    story = []
+
+    logo_block = Paragraph(
+        f"""
+        <font color="#f59e0b"><b>■</b></font>
+        <b>ZEMEN LAPTOPS</b><br/>
+        <font size="9" color="#94a3b8">
+        Premium laptop store in Addis Ababa
+        </font>
+        """,
+        logo_style
+    )
+
+    invoice_block = Paragraph(
+        f"<b>INVOICE</b><br/><font size='9'>Ref: {order.tx_ref[:8].upper()}</font>",
+        invoice_style
+    )
+
+    header = Table([[logo_block, invoice_block]], colWidths=[3.5 * inch, 2.5 * inch])
+    header.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+    ]))
+
+    story.append(header)
+    story.append(Spacer(1, 20))
+
+    cust_name = order.customer.full_name or order.customer.user.username
+
+    logistics = f"""
+    <b>Date:</b> {order.created_at.strftime('%Y-%m-%d %H:%M')}<br/>
+    <b>Delivery:</b> {order.get_delivery_method_display()}<br/>
+    <b>Status:</b> {order.get_delivery_status_display()}
+    """
+
+    customer_info = [
         [
-            Paragraph(f"<b>Billed To:</b><br/>{cust_name}<br/>{order.customer.email or order.customer.user.email}", meta_style),
-            Paragraph(f"<b>Date:</b> {order.created_at.strftime('%Y-%m-%d %H:%M')}<br/>{logistics_info}", meta_style)
+            Paragraph(
+                f"<b>BILLED TO</b><br/>{cust_name}<br/>{order.customer.email or order.customer.user.email}",
+                normal_style
+            ),
+            Paragraph(logistics, normal_style)
         ]
     ]
-    meta_table = Table(meta_data, colWidths=[270, 270])
-    meta_table.setStyle(TableStyle([
-        ('VALIGN', (0,0), (-1,-1), 'TOP'),
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#F7FAFC')),
-        ('PADDING', (0,0), (-1,-1), 8),
+
+    customer_table = Table(customer_info, colWidths=[3 * inch, 3 * inch])
+    customer_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), CARD_BG),
+        ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor("#e2e8f0")),
+        ('INNERPADDING', (0, 0), (-1, -1), 12),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
     ]))
-    story.append(meta_table)
-    story.append(Spacer(1, 20))
-    
+
+    story.append(customer_table)
+    story.append(Spacer(1, 25))
+
     table_data = [[
-        Paragraph("<b>Item Description</b>", styles['Normal']), 
-        Paragraph("<b>Qty</b>", styles['Normal']), 
-        Paragraph("<b>Unit Price</b>", styles['Normal']), 
-        Paragraph("<b>Total</b>", styles['Normal'])
+        Paragraph("<b>Item</b>", normal_style),
+        Paragraph("<b>Qty</b>", normal_style),
+        Paragraph("<b>Price</b>", normal_style),
+        Paragraph("<b>Total</b>", normal_style),
     ]]
-    
+
     for item in order.items.all():
         table_data.append([
-            Paragraph(item.laptop.name, styles['Normal']),
-            Paragraph(str(item.quantity), styles['Normal']),
-            Paragraph(f"{item.price} ETB", styles['Normal']),
-            Paragraph(f"{item.price * item.quantity} ETB", styles['Normal'])
+            Paragraph(item.laptop.name, normal_style),
+            str(item.quantity),
+            f"{item.price} ETB",
+            f"{item.price * item.quantity} ETB",
         ])
+
     table_data.append([
-        Paragraph("<b>Grand Total</b>", styles['Normal']), 
-        "", "", 
-        Paragraph(f"<b>{order.total_amount} ETB</b>", styles['Normal'])
+        "",
+        "",
+        Paragraph("<b>Grand Total</b>", total_style),
+        Paragraph(f"<b>{order.total_amount} ETB</b>", total_style)
     ])
-    
-    item_table = Table(table_data, colWidths=[260, 50, 100, 130])
+
+    item_table = Table(table_data, colWidths=[3 * inch, 0.7 * inch, 1.1 * inch, 1.2 * inch])
+
     item_table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#1A365D')),
-        ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
-        ('ALIGN', (0,0), (-1,-1), 'LEFT'),
-        ('BOTTOMPADDING', (0,0), (-1,0), 8),
-        ('TOPPADDING', (0,0), (-1,0), 8),
-        ('ROWBACKGROUNDS', (0,1), (-1,-2), [colors.white, colors.HexColor('#F7FAFC')]),
-        ('GRID', (0,0), (-1,-2), 0.5, colors.HexColor('#E2E8F0')),
-        ('LINEABOVE', (0,-1), (-1,-1), 1.5, colors.HexColor('#1A365D')),
-        ('TOPPADDING', (0,-1), (-1,-1), 10),
+        ('BACKGROUND', (0, 0), (-1, 0), SLATE_900),
+        ('TEXTCOLOR', (0, 0), (-1, 0), WHITE),
+        ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
+        ('GRID', (0, 0), (-1, -2), 0.3, colors.HexColor("#e2e8f0")),
+        ('LINEABOVE', (0, -1), (-1, -1), 1.5, AMBER),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
     ]))
-    for i in range(4):
-        item_table.setStyle(TableStyle([('TEXTCOLOR', (i,0), (i,0), colors.white)]))
-        
+
     story.append(item_table)
-    story.append(Spacer(1, 30))
-    footer_style = ParagraphStyle('Footer', parent=styles['Normal'], alignment=1, fontSize=9, textColor=colors.HexColor('#A0AEC0'))
-    story.append(Paragraph("Thank you for shopping with Zemen Laptops! Come back again.", footer_style))
-    
+    story.append(Spacer(1, 40))
+
+    footer = Paragraph(
+        """
+        <font color="#94a3b8">
+        Thank you for shopping with <b>Zemen Laptops</b>.<br/>
+        Megenagna, Tamegas Building | Addis Ababa<br/>
+        zemenlaptops@gmail.com | +251 91 123 4567
+        </font>
+        """,
+        ParagraphStyle(
+            'FooterStyle',
+            parent=styles['Normal'],
+            fontSize=8,
+            alignment=1
+        )
+    )
+
+    story.append(footer)
+
     doc.build(story)
     pdf_data = buffer.getvalue()
     buffer.close()

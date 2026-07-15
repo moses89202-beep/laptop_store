@@ -3,22 +3,66 @@ from django.contrib.auth.models import User
 from django.contrib.admin.views.decorators import staff_member_required
 from .forms import LaptopForm, UserForm, CustomerProfileForm, OrderForm
 from django.core.paginator import Paginator
-from django.db.models import Count, Avg, Q
+from django.db.models import Count, Avg, Q, Sum
 from myapp.models import Laptop, Review
 from app2.models import Order
+from django.db.models.functions import TruncMonth
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 @staff_member_required
 def dashboard_home_view(request):
+    # Base Stats
+    total_laptops = Laptop.objects.count()
+    total_users = User.objects.count()
+    total_orders = Order.objects.count()
+    total_reviews = Review.objects.count()
+    
+    # Financial Analytics
+    total_revenue = Order.objects.filter(payment_status='completed').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    pending_revenue = Order.objects.filter(payment_status='pending').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+
+    # Line Chart Data: Monthly Completed Orders & Revenue Trends
+    monthly_data = (
+        Order.objects.filter(payment_status='completed')
+        .annotate(month=TruncMonth('created_at'))
+        .values('month')
+        .annotate(count=Count('id'), total=Sum('total_amount'))
+        .order_by('month')
+    )
+    
+    sales_labels = [d['month'].strftime('%b %Y') for d in monthly_data]
+    sales_totals = [float(d['total']) for d in monthly_data]
+    order_counts = [d['count'] for d in monthly_data]
+
+    # Doughnut Chart Data: Distribution of Available Stock items by Brand
+    brand_data = (
+        Laptop.objects.values('brand')
+        .annotate(stock=Sum('quantity'))
+        .filter(stock__gt=0)
+        .order_by('-stock')
+    )
+    
+    brand_labels = [b['brand'] for b in brand_data]
+    brand_stock = [b['stock'] for b in brand_data]
+
     context = {
-        'total_laptops': Laptop.objects.count(),
-        'total_users': User.objects.count(),
-        'total_orders': Order.objects.count(),
-        'total_reviews': Review.objects.count(),
+        'total_laptops': total_laptops,
+        'total_users': total_users,
+        'total_orders': total_orders,
+        'total_reviews': total_reviews,
+        'total_revenue': total_revenue,
+        'pending_revenue': pending_revenue,
+        'sales_labels': sales_labels,
+        'sales_totals': sales_totals,
+        'order_counts': order_counts,
+        'brand_labels': brand_labels,
+        'brand_stock': brand_stock,
+        'low_stock_laptops': Laptop.objects.filter(quantity__lte=3),
         'recent_orders': Order.objects.select_related('customer').order_by('-created_at')[:5]
     }
     return render(request, 'base_dashboard.html', context)
-
 
 
 @staff_member_required
@@ -208,20 +252,43 @@ def user_manage_view(request, pk=None):
 
 @staff_member_required
 def order_manage_view(request, pk=None):
-    orders = Order.objects.select_related('customer').all()
     order_instance = get_object_or_404(Order, pk=pk) if pk else None
-    if request.method == 'POST' and 'delete_order' in request.POST and order_instance:
-        order_instance.delete()
-        return redirect('order_manage')
-    order_form = OrderForm(request.POST or None, instance=order_instance) if order_instance else None
+    q = request.GET.get('q', '')
+    orders = Order.objects.select_related('customer__user').prefetch_related('items__laptop').all().order_by('-created_at')
+    
+    if q:
+        orders = orders.filter(
+            Q(tx_ref__icontains=q) |
+            Q(customer__full_name__icontains=q) |
+            Q(customer__user__username__icontains=q) |
+            Q(customer__email__icontains=q) |
+            Q(customer__user__email__icontains=q) |
+            Q(customer__phone_number__icontains=q) |
+            Q(items__laptop__name__icontains=q) |
+            Q(items__laptop__brand__icontains=q)
+        ).distinct()
 
-    if request.method == 'POST' and 'save_order' in request.POST and order_instance:
-        if order_form.is_valid():
-            order_form.save()
+    paginator = Paginator(orders, 10)
+    page_number = request.GET.get('page')
+    orders_page = paginator.get_page(page_number)
+
+    if request.method == 'POST':
+        if 'delete_order' in request.POST and order_instance:
+            order_instance.delete()
             return redirect('order_manage')
+        if 'save_order' in request.POST and order_instance:
+            order_form = OrderForm(request.POST, instance=order_instance)
+            if order_form.is_valid():
+                order_form.save()
+                return redirect('order_manage')
+        else:
+            order_form = OrderForm(instance=order_instance)
+    else:
+        order_form = OrderForm(instance=order_instance)
 
     return render(request, 'order_manage.html', {
-        'orders': orders,
+        'orders': orders_page,
         'order_form': order_form,
-        'selected_order': order_instance
+        'selected_order': order_instance,
+        'q': q,
     })

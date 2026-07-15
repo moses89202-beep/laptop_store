@@ -8,6 +8,7 @@
     <h2 class="text-2xl font-extrabold tracking-tight text-slate-900 mb-1">Your Shopping Bag</h2>
     <p class="text-sm text-slate-500">Review your custom-engineered workspace hardware configurations before checkout.</p>
 </div>
+
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">   
     <div class="lg:col-span-8 space-y-4" id="cart-items-container">
         <div class="flex items-center justify-center py-16 bg-white border border-slate-200/80 rounded-2xl shadow-sm" id="cart-loading-spinner">
@@ -22,9 +23,11 @@
             </div>
         </div>
     </div>
+
     <div class="lg:col-span-4 sticky top-24 z-10">
         <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-5">
             <h4 class="text-base font-extrabold text-slate-900 tracking-tight">Order Summary</h4>
+            
             <div class="bg-slate-50 rounded-xl p-3 border border-slate-200/60">
                 <label class="block text-xs font-bold text-slate-700 tracking-wide uppercase mb-2">Fulfillment Method</label>
                 <div class="grid grid-cols-2 gap-2">
@@ -38,16 +41,18 @@
                     </label>
                 </div>
             </div>
+
             <div class="space-y-4">
-                <div class="flex justify-between items-center text-xs font-semibold">
-                    <span class="text-slate-400">Subtotal (<span id="summary-item-count">0</span> items)</span>
-                    <span class="text-slate-700 font-bold"><span id="summary-subtotal">0.00</span> <span class="text-[10px] text-slate-400 font-normal">ETB</span></span>
+                <div class="flex justify-between items-baseline text-xs text-slate-500">
+                    <span>Items (<span id="summary-item-count">0</span>)</span>
+                    <div>
+                        <span id="summary-subtotal">0.00</span>
+                        <span class="text-[10px] text-slate-400">ETB</span>
+                    </div>
                 </div>
-                <div class="flex justify-between items-center text-xs font-semibold">
-                    <span class="text-slate-400">Logistics Fee</span>
-                    <span class="text-emerald-600 font-extrabold uppercase tracking-wide">Free</span>
-                </div>
+
                 <div class="border-t border-slate-100 my-1"></div>
+
                 <div class="flex justify-between items-baseline">
                     <span class="font-bold text-sm text-slate-900">Estimated Total</span>
                     <div class="flex items-baseline gap-0.5 text-right">
@@ -56,6 +61,7 @@
                     </div>
                 </div>
             </div>
+
             {% csrf_token %}
             
             {% if user.is_authenticated %}
@@ -81,6 +87,7 @@
         </div>
     </div>
 </div>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const itemsContainer = document.getElementById('cart-items-container');
